@@ -4,6 +4,7 @@
 > This document defines the raw JSON shape returned by the diagnosis model before conversion into domain objects.
 
 ---
+Runtime validation rules are defined in docs/ai/10_RUNTIME_VALIDATION.md
 
 ## 1. Scope
 
