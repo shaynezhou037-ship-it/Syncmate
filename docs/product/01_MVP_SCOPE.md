@@ -1,527 +1,224 @@
-# Data Model
+# MVP Scope
 
-> Source of truth for SyncMate M1 domain types.
-> Copy the TypeScript definitions in this file into `src/types/domain.ts` unchanged.
-
----
-
-## 1. Scope
-
-```ts
-export const DATA_MODEL_SCOPE = "M1_MOCK_WEB_MVP" as const;
-```
-
-This file defines only M1 domain types.
-
-It does not define:
-
-```text
-- database schema
-- API request / response schema
-- AI provider response schema
-- UI component props
-```
+> Source of truth for SyncMate M1 MVP scope.
 
 ---
 
-## 2. Domain Types
+## 1. Role of This File
 
-```ts
-export type ID = string;
-export type ISODateString = string;
+This file defines:
 
-export type Subject =
-  | "math"
-  | "physics"
-  | "chemistry"
-  | "english"
-  | "other";
+* M1 product scope
+* MVP platform
+* MVP user
+* MVP core flow
+* MVP routes
+* P0 feature boundary
+* out-of-scope items
 
-export type GradeLevel =
-  | "primary_5"
-  | "primary_6"
-  | "middle_1"
-  | "middle_2"
-  | "middle_3"
-  | "high_1"
-  | "high_2"
-  | "high_3"
-  | "unknown";
+This file does not define:
 
-export type CorrectionMode = "simple" | "complete";
-
-export type MistakeStatus =
-  | "draft"
-  | "question_confirmed"
-  | "diagnosed"
-  | "reviewing"
-  | "mastered";
-
-export type ReviewStatus =
-  | "due"
-  | "reviewed"
-  | "mastered";
-
-export type DiagnosisProvider = "mock";
-
-export type QuestionSourceType =
-  | "manual_text"
-  | "mock_ocr"
-  | "image_upload";
-
-export type WeaknessCategory =
-  | "knowledge_point"
-  | "mistake_type"
-  | "thinking_habit"
-  | "calculation"
-  | "reading"
-  | "formula"
-  | "reasoning"
-  | "other";
-
-export type CorrectionBlockType =
-  | "question"
-  | "question_type"
-  | "core_keywords"
-  | "known_info"
-  | "target"
-  | "wrong_step"
-  | "mistake_cause"
-  | "weakness"
-  | "formula_or_method"
-  | "solution_flow"
-  | "student_blank"
-  | "anti_mistake_tip"
-  | "review_hint"
-  | "custom";
-
-export type CorrectionBlockZone =
-  | "cue"
-  | "main"
-  | "summary";
-
-export type BlockFillPolicy =
-  | "ai_filled"
-  | "student_blank"
-  | "student_filled"
-  | "mixed";
-```
+* product definition
+* data model
+* API contract
+* AI output schema
+* database schema
+* folder structure
+* implementation tasks
 
 ---
 
-## 3. Structured Block Content
+## 2. MVP Identity
 
 ```ts
-export type CorrectionBlockContent =
-  | {
-      kind: "text";
-      text: string;
-    }
-  | {
-      kind: "list";
-      items: string[];
-    }
-  | {
-      kind: "steps";
-      steps: DiagnosisStep[];
-    }
-  | {
-      kind: "checklist";
-      items: ChecklistItem[];
-    }
-  | {
-      kind: "blank";
-      placeholder: string;
-    };
+export const MVP_STAGE = "M1_MOCK_WEB_MVP" as const;
 
-export interface ChecklistItem {
-  id: ID;
-  text: string;
-  checked: boolean;
-}
+export const MVP_PLATFORM = "web" as const;
+
+export const MVP_SUBJECT_FOCUS = "math" as const;
+
+export const MVP_PRIMARY_USER = "middle_school_math_student" as const;
+
+export const MVP_CORE_QUESTION =
+  "Can a student turn one mistake into a clear, visible, and useful correction note?" as const;
 ```
+
+M1 validates the correction experience before real OCR, real AI billing, parent reports, teacher dashboards, mobile app, or mini program.
+
+M1 starts with math, but SyncMate MUST NOT be designed as a math-only product.
 
 ---
 
-## 4. Core Objects
+## 3. MVP Core Flow
 
 ```ts
-export interface UserProfile {
-  id: ID;
-  displayName: string;
-  role: "student";
-  gradeLevel: GradeLevel;
-}
+export const MVP_CORE_FLOW = [
+  "open_app",
+  "create_mistake",
+  "input_or_upload_question",
+  "confirm_question",
+  "input_wrong_solution",
+  "choose_correction_mode",
+  "generate_mock_diagnosis",
+  "view_correction_note",
+  "edit_or_complete_blocks",
+  "save_mistake",
+  "review_mistake",
+  "preview_a4_note"
+] as const;
 ```
 
-```ts
-export interface QuestionSource {
-  id: ID;
-  type: QuestionSourceType;
+Question confirmation MUST happen before diagnosis generation.
 
-  originalText?: string;
-  recognizedText?: string;
-  confirmedText: string;
+Simple Mode MUST keep space for student thinking.
 
-  imagePreviewUrl?: string; // local preview or mock image URL for M1 only
-  confirmedAt?: ISODateString; // set only after user confirms or edits question text
-}
-```
-
-```ts
-export interface Mistake {
-  id: ID;
-  ownerUserId: ID;
-
-  subject: Subject;
-  gradeLevel: GradeLevel;
-  title: string;
-  status: MistakeStatus;
-
-  questionSource: QuestionSource;
-  studentWrongSolution: string;
-  referenceSolution?: string;
-
-  selectedMode: CorrectionMode;
-
-  diagnosis?: Diagnosis;
-  correctionNote?: CorrectionNote;
-
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
-}
-```
-
-```ts
-export interface Diagnosis {
-  id: ID;
-  provider: DiagnosisProvider;
-  mode: CorrectionMode;
-
-  questionType: string;
-  coreKeywords: string[];
-  knownInfo: string[];
-  target: string;
-
-  wrongStep: string;
-  mistakeCauses: string[];
-  weakKnowledgePoints: string[];
-
-  correctThinkingPath: DiagnosisStep[];
-  antiMistakeTip: string;
-  reviewSuggestion: string;
-
-  createdAt: ISODateString;
-}
-```
-
-```ts
-export interface DiagnosisStep {
-  order: number;
-  title: string;
-  content: string;
-  isWrongStep?: boolean;
-  isBlankInSimpleMode?: boolean;
-}
-```
-
-```ts
-export interface CorrectionNote {
-  id: ID;
-  mode: CorrectionMode;
-  blocks: CorrectionBlock[];
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
-}
-```
-
-```ts
-export interface CorrectionBlock {
-  id: ID;
-  type: CorrectionBlockType;
-  zone: CorrectionBlockZone;
-
-  title: string;
-  content: CorrectionBlockContent;
-  order: number;
-
-  fillPolicy: BlockFillPolicy;
-  isLogicBlock?: boolean; // formula / method / solution flow blocks that Simple Mode may leave blank
-  isEditable: boolean;
-}
-```
-
-```ts
-export interface ReviewTask {
-  id: ID;
-  mistakeId: ID;
-  dueDate: ISODateString;
-  status: ReviewStatus;
-  completedAt?: ISODateString;
-}
-```
-
-```ts
-export interface WeaknessTag {
-  id: ID;
-  ownerUserId: ID;
-  subject: Subject;
-  label: string;
-  category: WeaknessCategory;
-  mistakeCount: number;
-  updatedAt: ISODateString;
-}
-```
+Complete Mode MAY provide a fuller diagnosis, but MUST NOT become a long essay.
 
 ---
 
-## 5. M1 Mock State
+## 4. MVP Routes
 
 ```ts
-export interface SyncMateMockState {
-  currentUser: UserProfile;
-  mistakes: Mistake[];
-  reviewTasks: ReviewTask[];
-  weaknessTags: WeaknessTag[];
-}
-```
-
-```ts
-export const M1_REQUIRED_MOCK_DATA = {
-  users: 1,
-  mistakesMin: 3,
-  reviewTasksMin: 2,
-  weaknessTagsMin: 3,
-  includeSimpleModeExample: true,
-  includeCompleteModeExample: true
-} as const;
-```
-
----
-
-## 6. Mode Constraints
-
-```ts
-export const SIMPLE_MODE_AI_FILLED_BLOCKS: CorrectionBlockType[] = [
-  "question_type",
-  "core_keywords",
-  "known_info",
-  "target",
-  "mistake_cause",
-  "weakness"
-];
-```
-
-```ts
-export const SIMPLE_MODE_STUDENT_BLANK_BLOCKS: CorrectionBlockType[] = [
-  "formula_or_method",
-  "solution_flow",
-  "student_blank"
-];
-```
-
-```ts
-export const COMPLETE_MODE_AI_FILLED_BLOCKS: CorrectionBlockType[] = [
-  "question_type",
-  "core_keywords",
-  "known_info",
-  "target",
-  "wrong_step",
-  "mistake_cause",
-  "weakness",
-  "formula_or_method",
-  "solution_flow",
-  "anti_mistake_tip",
-  "review_hint"
-];
-```
-
----
-
-## 7. M1 Invariants
-
-```ts
-export const M1_DATA_INVARIANTS = [
-  "mistake.questionSource.confirmedText_required_before_diagnosis",
-  "mistake.selectedMode_must_be_simple_or_complete",
-  "diagnosis_must_not_be_long_essay_text",
-  "diagnosis_weakKnowledgePoints_is_source_for_weakness_display",
-  "diagnosis_mistakeCauses_is_source_for_cause_display",
-  "correction_note_blocks_must_be_ordered",
-  "correction_block_content_must_be_structured",
-  "simple_mode_must_keep_logic_blocks_blank_or_student_filled",
-  "mock_data_shape_should_match_future_real_data_shape"
+export const MVP_ROUTES = [
+  "/app",
+  "/app/new",
+  "/app/mistakes",
+  "/app/mistakes/[id]",
+  "/app/review",
+  "/app/export/[id]"
 ] as const;
 ```
 
 ---
 
-## 8. Example M1 Object
+## 5. P0 Features
 
 ```ts
-export const EXAMPLE_MISTAKE: Mistake = {
-  id: "mistake_001",
-  ownerUserId: "user_demo",
-
-  subject: "math",
-  gradeLevel: "middle_2",
-  title: "圆木截段表面积问题",
-  status: "diagnosed",
-
-  questionSource: {
-    id: "question_source_001",
-    type: "manual_text",
-    originalText: "把一根 4 米长的圆木截成 3 小段，表面积增加 24 平方分米，求原来的体积。",
-    confirmedText: "把一根 4 米长的圆木截成 3 小段，表面积增加 24 平方分米，求原来的体积。",
-    confirmedAt: "2026-06-24T00:00:00.000Z"
-  },
-
-  studentWrongSolution: "24 ÷ 6 = 4，4 × 40 = 160",
-  referenceSolution: "截成 3 段需要切 2 刀，每刀增加 2 个截面，共 4 个截面。底面积 = 24 ÷ 4 = 6dm²，长 4m = 40dm，体积 = 6 × 40 = 240dm³。",
-
-  selectedMode: "complete",
-
-  diagnosis: {
-    id: "diagnosis_001",
-    provider: "mock",
-    mode: "complete",
-
-    questionType: "圆柱截段表面积问题",
-    coreKeywords: ["截成 3 段", "表面积增加", "24dm²", "原体积"],
-    knownInfo: ["圆木长 4m = 40dm", "截成 3 段", "表面积增加 24dm²"],
-    target: "求原来的体积",
-
-    wrongStep: "把“截成 3 段”理解成切 3 刀。",
-    mistakeCauses: ["段数和切刀数混淆", "新增截面数量判断错误"],
-    weakKnowledgePoints: ["圆柱体积", "截段表面积变化", "单位换算"],
-
-    correctThinkingPath: [
-      {
-        order: 1,
-        title: "切刀数",
-        content: "截成 3 段需要切 2 刀。",
-        isWrongStep: true
-      },
-      {
-        order: 2,
-        title: "新增截面",
-        content: "每切 1 刀增加 2 个圆截面，共增加 4 个截面。"
-      },
-      {
-        order: 3,
-        title: "底面积",
-        content: "24 ÷ 4 = 6dm²。"
-      },
-      {
-        order: 4,
-        title: "体积",
-        content: "4m = 40dm，6 × 40 = 240dm³。"
-      }
-    ],
-
-    antiMistakeTip: "看到“截成 n 段”，先想“切 n−1 刀”。",
-    reviewSuggestion: "复习圆柱体积和截段新增表面积问题。",
-    createdAt: "2026-06-24T00:01:00.000Z"
-  },
-
-  correctionNote: {
-    id: "note_001",
-    mode: "complete",
-    blocks: [
-      {
-        id: "block_001",
-        type: "known_info",
-        zone: "main",
-        title: "已知",
-        content: {
-          kind: "list",
-          items: ["4m = 40dm", "截成 3 段", "表面积增加 24dm²"]
-        },
-        order: 1,
-        fillPolicy: "ai_filled",
-        isEditable: true
-      },
-      {
-        id: "block_002",
-        type: "solution_flow",
-        zone: "main",
-        title: "流程",
-        content: {
-          kind: "steps",
-          steps: [
-            {
-              order: 1,
-              title: "切刀数",
-              content: "截成 3 段 → 切 2 刀"
-            },
-            {
-              order: 2,
-              title: "新增截面",
-              content: "2 刀 × 每刀 2 个截面 = 4 个截面"
-            },
-            {
-              order: 3,
-              title: "体积",
-              content: "24 ÷ 4 = 6dm²；6 × 40 = 240dm³"
-            }
-          ]
-        },
-        order: 2,
-        fillPolicy: "ai_filled",
-        isLogicBlock: true,
-        isEditable: true
-      },
-      {
-        id: "block_003",
-        type: "mistake_cause",
-        zone: "cue",
-        title: "我的错因",
-        content: {
-          kind: "checklist",
-          items: [
-            {
-              id: "cause_001",
-              text: "把“截成 3 段”当成切 3 刀",
-              checked: true
-            },
-            {
-              id: "cause_002",
-              text: "新增截面数量判断错误",
-              checked: true
-            }
-          ]
-        },
-        order: 3,
-        fillPolicy: "mixed",
-        isEditable: true
-      }
-    ],
-    createdAt: "2026-06-24T00:01:00.000Z",
-    updatedAt: "2026-06-24T00:01:00.000Z"
-  },
-
-  createdAt: "2026-06-24T00:00:00.000Z",
-  updatedAt: "2026-06-24T00:01:00.000Z"
-};
+export const MVP_P0_FEATURES = [
+  "manual_mistake_creation",
+  "question_text_input",
+  "mock_image_upload_preview",
+  "question_confirmation",
+  "wrong_solution_input",
+  "correction_mode_selection",
+  "simple_mode",
+  "complete_mode",
+  "mock_diagnosis_generation",
+  "wrong_step_display",
+  "mistake_cause_display",
+  "weak_knowledge_point_display",
+  "known_information_display",
+  "target_display",
+  "correction_block_display",
+  "editable_correction_blocks",
+  "mistake_list",
+  "mistake_detail",
+  "basic_review_status",
+  "mark_as_reviewed",
+  "mark_as_mastered",
+  "a4_preview"
+] as const;
 ```
 
 ---
 
-## 9. FUTURE
+## 6. Correction Modes
 
 ```ts
-export const FUTURE_DATA_OBJECTS = [
-  "Attachment",
-  "OCRResult",
-  "AIJob",
-  "PromptVersion",
-  "ExportRecord",
-  "ParentReport",
-  "TeacherClass",
-  "PaymentSubscription",
-  "DiagnosisCreditTransaction",
-  "Notification"
+export const MVP_CORRECTION_MODES = [
+  "simple",
+  "complete"
 ] as const;
 ```
 
-FUTURE objects MUST NOT be added to M1 domain types unless M1 scope changes.
+Simple Mode:
+
+* shows the question structure
+* shows known information
+* shows target
+* shows mistake cause
+* shows weak knowledge points
+* leaves key reasoning blocks blank or student-completable
+
+Complete Mode:
+
+* includes wrong-step diagnosis
+* includes mistake cause
+* includes weak knowledge points
+* includes correct thinking path
+* includes anti-mistake tip
+* includes review suggestion
+
+Exact block types belong to `docs/data/00_DATA_MODEL.md`.
+
+Exact AI output shape belongs to `docs/ai/07_AI_OUTPUT_SCHEMA.md`.
+
+Exact runtime validation belongs to `docs/ai/10_RUNTIME_VALIDATION.md`.
+
+---
+
+## 7. Out of Scope for M1
+
+```ts
+export const MVP_OUT_OF_SCOPE = [
+  "real_payment",
+  "diagnosis_coins",
+  "real_full_page_ocr",
+  "automatic_multi_question_cutting",
+  "parent_account",
+  "parent_report",
+  "teacher_dashboard",
+  "school_dashboard",
+  "real_pdf_generation",
+  "mobile_app",
+  "mini_program",
+  "real_ai_provider_billing",
+  "multi_user_collaboration",
+  "cross_subject_full_support"
+] as const;
+```
+
+Out-of-scope items MUST NOT appear as required fields in M1 domain types.
+
+Future items MAY be mentioned only when clearly marked as FUTURE in their own documents.
+
+---
+
+## 8. M1 Acceptance Boundary
+
+M1 is acceptable when a student can complete this loop:
+
+1. create one mistake
+2. confirm the question
+3. enter the wrong solution
+4. choose Simple or Complete Mode
+5. generate mock diagnosis
+6. see a structured correction note
+7. edit or complete note blocks
+8. save the mistake
+9. revisit it from the mistake list
+10. mark review status
+11. preview an A4-style correction note
+
+M1 is not acceptable if:
+
+* the app only stores mistakes without diagnosis
+* the diagnosis is a long answer instead of structured correction blocks
+* Simple Mode gives away all reasoning
+* the user can generate diagnosis before confirming the question
+* the app requires real OCR, real payment, parent accounts, or teacher dashboards to demonstrate the core loop
+
+---
+
+## 9. Handoff Rules for AI Coding Agents
+
+When implementing M1:
+
+* MUST follow this scope file.
+* MUST NOT add out-of-scope features.
+* MUST use `docs/data/00_DATA_MODEL.md` for domain types.
+* MUST use `docs/ai/07_AI_OUTPUT_SCHEMA.md` for raw AI output types.
+* MUST use `docs/ai/10_RUNTIME_VALIDATION.md` for output validation.
+* MUST keep mock data shaped close to future real data.
+* MUST not copy `prototype/SyncMate_V5.html` into production code.
+* SHOULD use the prototype only as visual and interaction reference.
