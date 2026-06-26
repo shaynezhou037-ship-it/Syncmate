@@ -58,27 +58,27 @@ Do not invent missing decisions.
 ## 3. Source of Truth Map
 
 ```text
-Product definition       → docs/01_PROJECT_CONTEXT.md
-Documentation rules      → docs/02_DOC_STYLE_GUIDE.md
-MVP scope                → docs/product/01_MVP_SCOPE.md
-User flow                → docs/product/03_USER_FLOW.md
-Page list                → docs/product/04_PAGE_LIST.md
-Design style             → docs/design/00_DESIGN_STYLE.md
-Prototype notes          → docs/design/02_PROTOTYPE_NOTES.md
-Data model               → docs/data/00_DATA_MODEL.md
-Database schema          → docs/data/01_DATABASE_SCHEMA.md
-API contract             → docs/api/01_API_CONTRACT.md
-AI strategy              → docs/ai/00_AI_STRATEGY.md
-AI prompt behavior       → docs/ai/02_AI_PROMPTS.md
-AI output schema         → docs/ai/07_AI_OUTPUT_SCHEMA.md
-Tech stack               → docs/engineering/00_TECH_STACK.md
-Architecture             → docs/engineering/01_ARCHITECTURE.md
-Folder structure         → docs/engineering/02_FOLDER_STRUCTURE.md
-Secret management        → docs/security/00_SECRET_MANAGEMENT.md
-Task roadmap             → docs/tasks/00_ROADMAP.md
-Current milestone        → docs/tasks/01_MILESTONE_M1.md
-Backlog                  → docs/tasks/03_BACKLOG.md
-Decision history         → docs/03_DECISION_LOG.md
+Product definition       -> docs/01_PROJECT_CONTEXT.md
+Documentation rules      -> docs/02_DOC_STYLE_GUIDE.md
+MVP scope                -> docs/product/01_MVP_SCOPE.md
+User flow                -> docs/product/03_USER_FLOW.md
+Page list                -> docs/product/04_PAGE_LIST.md
+Design style             -> docs/design/00_DESIGN_STYLE.md
+Prototype notes          -> docs/design/02_PROTOTYPE_NOTES.md
+Data model               -> docs/data/00_DATA_MODEL.md
+Database schema          -> docs/data/01_DATABASE_SCHEMA.md
+API contract             -> docs/api/01_API_CONTRACT.md
+AI strategy              -> docs/ai/00_AI_STRATEGY.md
+AI prompt behavior       -> docs/ai/02_AI_PROMPTS.md
+AI output schema         -> docs/ai/07_AI_OUTPUT_SCHEMA.md
+Tech stack               -> docs/engineering/00_TECH_STACK.md
+Architecture             -> docs/engineering/01_ARCHITECTURE.md
+Folder structure         -> docs/engineering/02_FOLDER_STRUCTURE.md
+Secret management        -> docs/security/00_SECRET_MANAGEMENT.md
+Task roadmap             -> docs/tasks/00_ROADMAP.md
+Current milestone        -> docs/tasks/01_MILESTONE_M1.md
+Backlog                  -> docs/tasks/03_BACKLOG.md
+Decision history         -> docs/03_DECISION_LOG.md
 ```
 
 ---

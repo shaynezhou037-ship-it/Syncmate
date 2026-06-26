@@ -48,6 +48,15 @@ import type {
 
 export type DiagnosisOutputSchemaVersion = "diagnosis_output_v1";
 
+export const CURRENT_AI_OUTPUT_SCHEMA_VERSION =
+  "diagnosis_output_v1" as const satisfies DiagnosisOutputSchemaVersion;
+
+export const SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS = [
+  CURRENT_AI_OUTPUT_SCHEMA_VERSION
+] as const satisfies readonly DiagnosisOutputSchemaVersion[];
+
+export const DIAGNOSIS_OUTPUT_SCHEMA_VERSION = CURRENT_AI_OUTPUT_SCHEMA_VERSION;
+
 export type DiagnosisOutputLanguage = "zh-CN" | "en";
 
 export type DiagnosisOutputStatus =
@@ -117,6 +126,20 @@ export type AICorrectionBlockType = Exclude<
   "question" | "custom"
 >;
 
+export interface AITextSegment {
+  kind: "text";
+  value: string;
+}
+
+export interface AIBlankSegment {
+  kind: "blank";
+  placeholder: string;
+  hint?: string;
+  answer?: string;
+}
+
+export type AICorrectionContentSegment = AITextSegment | AIBlankSegment;
+
 export type AICorrectionBlockContent =
   | {
       kind: "text";
@@ -135,8 +158,8 @@ export type AICorrectionBlockContent =
       items: AIChecklistItem[];
     }
   | {
-      kind: "blank";
-      placeholder: string;
+      kind: "segments";
+      segments: AICorrectionContentSegment[];
     };
 
 export interface AIChecklistItem {
@@ -153,13 +176,29 @@ export interface AICorrectionBlock {
   isLogicBlock?: boolean;
 }
 
-export const DIAGNOSIS_OUTPUT_SCHEMA_VERSION: DiagnosisOutputSchemaVersion =
-  "diagnosis_output_v1";
+
 ```
 
 ---
 
-## 3. Output Boundary
+## 3. Schema Version Policy
+
+M1 uses a single strict schema version:
+
+```ts
+CURRENT_AI_OUTPUT_SCHEMA_VERSION === "diagnosis_output_v1"
+SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS === ["diagnosis_output_v1"]
+```
+
+The version string format is `diagnosis_output_v<major>`.
+
+A major version identifies a validation and mapping contract. Changing field names, field meanings, correction block content shapes, required fields, or mapping semantics MUST create a new major version string.
+
+M1 supports only `CURRENT_AI_OUTPUT_SCHEMA_VERSION`. Runtime validation MUST reject any `schemaVersion` not listed in `SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS`.
+
+---
+
+## 4. Output Boundary
 
 Raw AI output MUST NOT include app-generated fields.
 
@@ -181,7 +220,7 @@ The app layer generates those fields after validation.
 
 ---
 
-## 4. Success Output
+## 5. Success Output
 
 `DiagnosisSuccessOutputV1` is used only when diagnosis can be generated.
 
@@ -200,7 +239,7 @@ It does not contain:
 
 ---
 
-## 5. Fallback Output
+## 6. Fallback Output
 
 `DiagnosisNeedsMoreInfoOutputV1` is used when the input is insufficient.
 
@@ -212,7 +251,7 @@ Fallback output MUST NOT contain `correctionBlocks`.
 
 ---
 
-## 6. AI Correction Blocks
+## 7. AI Correction Blocks
 
 AI correction blocks are raw blocks before domain mapping.
 
@@ -228,29 +267,55 @@ The app layer creates:
 * default editability
 * checklist IDs
 * checklist checked state
+* blank IDs for `AIBlankSegment`
+
+### Simple Mode Blank Segments
+
+A student-completable blank is represented only by `AIBlankSegment` inside `AICorrectionBlockContent` with `kind: "segments"`.
+
+`AIBlankSegment.placeholder` is the short visible prompt for the student.
+
+`AIBlankSegment.hint` is optional helper text.
+
+`AIBlankSegment.answer` is optional. In Simple Mode, if present, it is the expected answer for internal checking or later review UI and MUST NOT be rendered as visible student-facing text before the student answers.
+
+`AIBlankSegment` MUST NOT include `blankId` in raw AI output. The mapper creates app-owned blank IDs after runtime validation.
+
+Only these block types MAY contain `AIBlankSegment` values:
+
+* `formula_or_method`
+* `solution_flow`
+* `student_blank`
+
+All other block types MUST NOT contain `AIBlankSegment` values.
+
+Complete Mode MUST NOT contain any `AIBlankSegment` values.
+
+For text length validation, each `AITextSegment.value`, `AIBlankSegment.placeholder`, `AIBlankSegment.hint`, and `AIBlankSegment.answer` is validated as an individual text field. The validator MUST NOT concatenate all segments before applying text length limits.
 
 ---
 
-## 7. Validation Boundary
+## 8. Validation Boundary
 
 This schema does not guarantee runtime correctness.
 
 TypeScript does not enforce:
 
+* schema version compatibility
 * string length
 * array length
 * required block types by mode
 * duplicate block order
 * compatible block content kind
-* Simple Mode blank block requirements
-* Complete Mode fill requirements
+* Simple Mode `AIBlankSegment` requirements
+* Complete Mode no-blank requirements
 * unsafe text content
 
 Those checks belong to `docs/ai/10_RUNTIME_VALIDATION.md`.
 
 ---
 
-## 8. Minimal Valid Example
+## 9. Minimal Valid Example
 
 ```ts
 export const MINIMAL_DIAGNOSIS_OUTPUT_V1_EXAMPLE = {
@@ -299,9 +364,19 @@ export const MINIMAL_DIAGNOSIS_OUTPUT_V1_EXAMPLE = {
       title: "自己补",
       order: 2,
       fillPolicy: "student_blank",
-      content: {
-        kind: "blank",
-        placeholder: "请自己补全关键步骤"
+            content: {
+        kind: "segments",
+        segments: [
+          {
+            kind: "text",
+            value: "请补全关键步骤："
+          },
+          {
+            kind: "blank",
+            placeholder: "写出移项后的式子",
+            hint: "注意符号变化"
+          }
+        ]
       },
       isLogicBlock: true
     }
@@ -311,7 +386,7 @@ export const MINIMAL_DIAGNOSIS_OUTPUT_V1_EXAMPLE = {
 
 ---
 
-## 9. Handoff Rules for AI Coding Agents
+## 10. Handoff Rules for AI Coding Agents
 
 When implementing `src/types/ai.ts`:
 

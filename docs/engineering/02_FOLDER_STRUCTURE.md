@@ -329,6 +329,8 @@ Must not contain:
 
 ## 4. Import Direction Rules
 
+This section is a whitelist. Any import direction not explicitly listed in Allowed import direction is disallowed. Before adding a new cross-layer dependency, this file MUST be updated first.
+
 Allowed import direction:
 
 ```txt
@@ -340,10 +342,33 @@ src/app
 src/app
   -> src/lib/mock/api.ts
 
+src/components
+  -> src/types
+
+src/components/app
+  -> src/components/ui
+
+src/components/mistake
+  -> src/components/ui
+
+src/components/correction
+  -> src/components/ui
+
+src/components/review
+  -> src/components/ui
+
+src/components/export
+  -> src/components/ui
+
+src/components/ui
+  -> src/types
+
 src/lib/mock/api.ts
   -> src/mock
   -> src/lib/ai
   -> src/types
+  -> src/lib/mock/id.ts
+  -> src/lib/mock/time.ts
 
 src/lib/ai/diagnosisOutputMapper.ts
   -> src/types
@@ -353,9 +378,45 @@ src/lib/ai/diagnosisOutputMapper.ts
 src/lib/ai/diagnosisOutputValidator.ts
   -> src/types
 
+src/lib/mock/id.ts
+  -> no other src modules
+
+src/lib/mock/time.ts
+  -> no other src modules
+
 src/mock
   -> src/types
 ```
+
+`src/lib/mock/id.ts` and `src/lib/mock/time.ts` are treated as stateless utility exceptions inside `src/lib/mock`.
+
+`src/lib/ai/diagnosisOutputMapper.ts` MAY import `src/lib/mock/id.ts` and `src/lib/mock/time.ts` only for ID and timestamp generation.
+
+`src/lib/ai/diagnosisOutputValidator.ts` MUST NOT import `src/lib/mock/id.ts`, `src/lib/mock/time.ts`, or any other `src/lib/mock` module.
+
+Components MAY import `src/types` for props and display-only type usage.
+
+Components MUST NOT import `src/lib/mock`, including `src/lib/mock/api.ts`.
+
+Components MUST NOT import `src/lib/ai`.
+
+Components MUST NOT import `src/lib` unless this file explicitly registers a specific exception.
+
+Business component folders are:
+
+```txt
+src/components/app
+src/components/mistake
+src/components/correction
+src/components/review
+src/components/export
+```
+
+Business component folders MAY import `src/components/ui`.
+
+Business component folders MUST NOT import from other business component folders.
+
+Shared component logic MUST be moved to `src/components/ui` or explicitly registered in this file before use.
 
 Disallowed import direction:
 
@@ -367,12 +428,49 @@ src/types -> src/mock
 
 src/mock -> src/app
 src/mock -> src/components
+src/mock -> src/lib
 
 src/lib/ai -> src/app
 src/lib/ai -> src/components
+src/lib/ai -> src/lib/mock
+
+src/lib/ai/diagnosisOutputMapper.ts -> src/lib/mock/api.ts
+src/lib/ai/diagnosisOutputMapper.ts -> src/mock
+src/lib/ai/diagnosisOutputValidator.ts -> src/lib/mock
+src/lib/ai/diagnosisOutputValidator.ts -> src/mock
 
 src/components -> src/app
+src/components -> src/lib/mock
+src/components -> src/lib/mock/api.ts
+src/components -> src/lib/ai
+
+src/components/app -> src/components/mistake
+src/components/app -> src/components/correction
+src/components/app -> src/components/review
+src/components/app -> src/components/export
+
+src/components/mistake -> src/components/app
+src/components/mistake -> src/components/correction
+src/components/mistake -> src/components/review
+src/components/mistake -> src/components/export
+
+src/components/correction -> src/components/app
+src/components/correction -> src/components/mistake
+src/components/correction -> src/components/review
+src/components/correction -> src/components/export
+
+src/components/review -> src/components/app
+src/components/review -> src/components/mistake
+src/components/review -> src/components/correction
+src/components/review -> src/components/export
+
+src/components/export -> src/components/app
+src/components/export -> src/components/mistake
+src/components/export -> src/components/correction
+src/components/export -> src/components/review
 ```
+
+The only allowed `src/lib/ai -> src/lib/mock` imports are the explicit mapper exceptions to `src/lib/mock/id.ts` and `src/lib/mock/time.ts` listed above.
 
 ---
 
@@ -546,11 +644,23 @@ Mock data MUST import types from `src/types/domain.ts`.
 
 Mock data MUST include:
 
-* one student user
+* at least one user whose role is student
 * at least three mistakes
-* at least one Simple Mode example
-* at least one Complete Mode example
+* at least one diagnosis whose mode is Simple Mode and whose correction blocks satisfy the Simple Mode blank requirements defined in `docs/ai/10_RUNTIME_VALIDATION.md`
+* at least one diagnosis whose mode is Complete Mode and whose correction blocks contain no blank, as defined in `docs/ai/10_RUNTIME_VALIDATION.md`
 * at least two review tasks
+
+`src/mock/index.ts` MUST export a lightweight development/test-only invariant function named `assertMockDataInvariants`.
+
+`assertMockDataInvariants` MUST enforce the mock data quantity rules above with machine-checkable conditions.
+
+`assertMockDataInvariants` MUST throw if any mock data invariant is violated.
+
+`assertMockDataInvariants` MUST run only in development or test environments and MUST NOT be part of a production runtime path.
+
+`assertMockDataInvariants` belongs to `src/mock` and MUST only depend on `src/types` and local `src/mock` data modules.
+
+`assertMockDataInvariants` MUST NOT import `src/lib/ai`, `src/lib/mock`, `src/components`, or `src/app`.
 
 Mock data MUST NOT include:
 
