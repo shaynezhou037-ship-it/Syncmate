@@ -40,18 +40,18 @@ Runtime validation belongs to `docs/ai/10_RUNTIME_VALIDATION.md`.
 src/
   app/
     page.tsx
-    app/
+    app/                         # /app
       page.tsx
-      new/
+      new/                       # /app/new
         page.tsx
-      mistakes/
+      mistakes/                  # /app/mistakes
         page.tsx
-        [id]/
+        [id]/                    # /app/mistakes/[id]
           page.tsx
-      review/
+      review/                    # /app/review
         page.tsx
       export/
-        [id]/
+        [id]/                    # /app/export/[id]
           page.tsx
 
   components/
@@ -448,7 +448,7 @@ Do not create these unless a later stage explicitly changes the project scope.
 ## 7. Route Ownership
 
 ```txt
-/app
+/app -> src/app/app/page.tsx
 ```
 
 Owns:
@@ -459,7 +459,7 @@ Owns:
 * create mistake entry
 
 ```txt
-/app/new
+/app/new -> src/app/app/new/page.tsx
 ```
 
 Owns:
@@ -472,7 +472,7 @@ Owns:
 * mock diagnosis generation trigger
 
 ```txt
-/app/mistakes
+/app/mistakes -> src/app/app/mistakes/page.tsx
 ```
 
 Owns:
@@ -482,7 +482,7 @@ Owns:
 * navigation to mistake detail
 
 ```txt
-/app/mistakes/[id]
+/app/mistakes/[id] -> src/app/app/mistakes/[id]/page.tsx
 ```
 
 Owns:
@@ -493,7 +493,7 @@ Owns:
 * review status update
 
 ```txt
-/app/review
+/app/review -> src/app/app/review/page.tsx
 ```
 
 Owns:
@@ -502,7 +502,7 @@ Owns:
 * due/reviewed/mastered state display
 
 ```txt
-/app/export/[id]
+/app/export/[id] -> src/app/app/export/[id]/page.tsx
 ```
 
 Owns:
