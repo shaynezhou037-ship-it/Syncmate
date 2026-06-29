@@ -71,10 +71,9 @@ src/
       id.ts
       time.ts
 
-  mock/
+    mock/
     users.ts
     mistakes.ts
-    diagnoses.ts
     reviewTasks.ts
     index.ts
 
@@ -201,8 +200,8 @@ Uses:
 
 * `src/types/ai.ts`
 * `src/types/domain.ts`
-* `src/lib/mock/id.ts`
-* `src/lib/mock/time.ts`
+* injected ID creation function
+* injected time creation function
 
 Must not contain:
 
@@ -211,6 +210,7 @@ Must not contain:
 * React components
 * route logic
 * mock service state mutation
+* direct imports from `src/lib/mock`
 
 ---
 
@@ -275,8 +275,7 @@ Must not contain:
 Owns:
 
 * mock users
-* mock mistakes
-* mock diagnoses
+* mock mistakes with embedded demo diagnoses and correction notes
 * mock review tasks
 * mock state exports
 
@@ -336,7 +335,6 @@ Allowed import direction:
 ```txt
 src/app
   -> src/components
-  -> src/lib
   -> src/types
 
 src/app
@@ -365,15 +363,14 @@ src/components/ui
 
 src/lib/mock/api.ts
   -> src/mock
-  -> src/lib/ai
+  -> src/lib/ai/diagnosisOutputValidator.ts
+  -> src/lib/ai/diagnosisOutputMapper.ts
   -> src/types
   -> src/lib/mock/id.ts
   -> src/lib/mock/time.ts
 
 src/lib/ai/diagnosisOutputMapper.ts
   -> src/types
-  -> src/lib/mock/id.ts
-  -> src/lib/mock/time.ts
 
 src/lib/ai/diagnosisOutputValidator.ts
   -> src/types
@@ -388,9 +385,11 @@ src/mock
   -> src/types
 ```
 
-`src/lib/mock/id.ts` and `src/lib/mock/time.ts` are treated as stateless utility exceptions inside `src/lib/mock`.
+`src/lib/mock/id.ts` and `src/lib/mock/time.ts` are mock-layer utility files.
 
-`src/lib/ai/diagnosisOutputMapper.ts` MAY import `src/lib/mock/id.ts` and `src/lib/mock/time.ts` only for ID and timestamp generation.
+`src/lib/mock/api.ts` MAY pass ID and time creation functions into `src/lib/ai/diagnosisOutputMapper.ts` as injected arguments.
+
+`src/lib/ai/diagnosisOutputMapper.ts` MUST NOT import `src/lib/mock/id.ts`, `src/lib/mock/time.ts`, or any other `src/lib/mock` module.
 
 `src/lib/ai/diagnosisOutputValidator.ts` MUST NOT import `src/lib/mock/id.ts`, `src/lib/mock/time.ts`, or any other `src/lib/mock` module.
 
@@ -434,10 +433,18 @@ src/lib/ai -> src/app
 src/lib/ai -> src/components
 src/lib/ai -> src/lib/mock
 
+src/lib/ai/diagnosisOutputMapper.ts -> src/lib/mock
 src/lib/ai/diagnosisOutputMapper.ts -> src/lib/mock/api.ts
+src/lib/ai/diagnosisOutputMapper.ts -> src/lib/mock/id.ts
+src/lib/ai/diagnosisOutputMapper.ts -> src/lib/mock/time.ts
 src/lib/ai/diagnosisOutputMapper.ts -> src/mock
 src/lib/ai/diagnosisOutputValidator.ts -> src/lib/mock
 src/lib/ai/diagnosisOutputValidator.ts -> src/mock
+
+src/app -> src/lib
+src/app -> src/lib/ai
+src/app -> src/lib/mock/id.ts
+src/app -> src/lib/mock/time.ts
 
 src/components -> src/app
 src/components -> src/lib/mock
@@ -470,7 +477,7 @@ src/components/export -> src/components/correction
 src/components/export -> src/components/review
 ```
 
-The only allowed `src/lib/ai -> src/lib/mock` imports are the explicit mapper exceptions to `src/lib/mock/id.ts` and `src/lib/mock/time.ts` listed above.
+No `src/lib/ai` file may import `src/lib/mock`. If mapper output needs IDs or timestamps, callers MUST inject creation functions.
 
 ---
 
@@ -492,9 +499,14 @@ src/lib/mock/time.ts
 
 src/mock/users.ts
 src/mock/mistakes.ts
-src/mock/diagnoses.ts
 src/mock/reviewTasks.ts
 src/mock/index.ts
+
+src/components/ui/Button.tsx
+src/components/ui/Card.tsx
+src/components/ui/Tag.tsx
+src/components/ui/PageHeader.tsx
+src/components/ui/EmptyState.tsx
 
 src/components/app/AppShell.tsx
 src/components/mistake/MistakeForm.tsx
@@ -646,13 +658,25 @@ Mock data MUST include:
 
 * at least one user whose role is student
 * at least three mistakes
-* at least one diagnosis whose mode is Simple Mode and whose correction blocks satisfy the Simple Mode blank requirements defined in `docs/ai/10_RUNTIME_VALIDATION.md`
-* at least one diagnosis whose mode is Complete Mode and whose correction blocks contain no blank, as defined in `docs/ai/10_RUNTIME_VALIDATION.md`
+* at least one mistake with an embedded diagnosis whose mode is Simple Mode
+* at least one mistake with an embedded diagnosis whose mode is Complete Mode
 * at least two review tasks
+
+Demo diagnoses and correction notes SHOULD be embedded in `src/mock/mistakes.ts` for M1. Do not create `src/mock/diagnoses.ts` unless this file is updated to define it as reusable constants composed by `src/mock/mistakes.ts`.
 
 `src/mock/index.ts` MUST export a lightweight development/test-only invariant function named `assertMockDataInvariants`.
 
-`assertMockDataInvariants` MUST enforce the mock data quantity rules above with machine-checkable conditions.
+`assertMockDataInvariants` MUST check only mock quantity, IDs, and basic relationships, such as:
+
+* required minimum counts listed above
+* unique IDs within each mock collection
+* review tasks reference existing mistakes
+* embedded diagnoses belong to existing mistakes
+* embedded correction notes belong to existing mistakes
+
+`assertMockDataInvariants` MUST NOT duplicate AI runtime validation rules from `docs/ai/10_RUNTIME_VALIDATION.md`.
+
+`assertMockDataInvariants` MUST NOT validate AI output schema, block compatibility, text safety, or Simple Mode blank semantics.
 
 `assertMockDataInvariants` MUST throw if any mock data invariant is violated.
 

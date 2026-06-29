@@ -33,7 +33,7 @@ Domain types belong to `docs/data/00_DATA_MODEL.md`.
 
 ## 2. Target File
 
-```ts
+```txt
 src/lib/ai/diagnosisOutputValidator.ts
 ```
 
@@ -264,11 +264,7 @@ The schema version constants MUST match `CURRENT_AI_OUTPUT_SCHEMA_VERSION` and `
 
 The validator MUST validate `schemaVersion` before validating `status`, branch-specific required fields, text limits, correction blocks, or fallback fields.
 
-M1 uses strict schema version matching:
-
-```ts
-raw.schemaVersion MUST be included in SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS
-```
+M1 uses strict schema version matching. `raw.schemaVersion` MUST be a string included in `SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS`.
 
 The validator MUST apply these rules:
 
@@ -369,6 +365,8 @@ export const BLOCK_CONTENT_COMPATIBILITY = {
 
 The validator MUST reject incompatible combinations.
 
+All keys in `BLOCK_CONTENT_COMPATIBILITY` MUST be valid `AICorrectionBlockType` values. `AICorrectionBlockType` is defined in `docs/ai/07_AI_OUTPUT_SCHEMA.md` as `CorrectionBlockType` excluding only `"question"` and `"custom"`.
+
 Examples:
 
 * `known_info` with `{ kind: "text" }` is invalid.
@@ -378,7 +376,34 @@ Examples:
 
 ---
 
-## 10. Validator Entry
+## 10. Segmented Content Validation
+
+When block content has `kind: "segments"`, the validator MUST check:
+
+* `segments` is an array.
+* `segments` is not empty.
+* every segment is a non-array object.
+* every segment has a valid `kind` value: `"text"` or `"blank"`.
+* text segments have a string `value` field.
+* blank segments have a string `placeholder` field.
+* blank segment `hint`, when present, is a string.
+* blank segment `answer`, when present, is a string.
+* raw AI blank segments MUST NOT contain `blankId`.
+* raw AI text segments MUST NOT contain `blankId`.
+* unknown segment kinds are invalid.
+* segment text fields are checked for length, newline count, markdown code fences, and literal HTML tag syntax.
+
+The validator MUST validate segment structure only.
+
+The validator MUST NOT create blank IDs.
+
+The validator MUST NOT convert AI segments into domain `CorrectionContentSegment` values.
+
+Mapper responsibility starts only after validation succeeds.
+
+---
+
+## 11. Validator Entry
 
 ```ts
 export function validateDiagnosisOutput(
@@ -392,7 +417,7 @@ Implementation MUST validate the raw object before casting it to `DiagnosisOutpu
 
 ---
 
-## 11. Validation Responsibilities
+## 12. Validation Responsibilities
 
 The validator MUST check:
 
@@ -410,6 +435,9 @@ The validator MUST check:
 * block `zone` is valid
 * block `fillPolicy` is valid
 * block `content.kind` is compatible with block `type`
+* segmented block content has a valid `segments` array
+* every segment has a valid segment kind and required fields
+* raw AI segments do not contain app-generated `blankId`
 * block `order` values are unique
 * required block types exist for the selected mode
 * Simple Mode contains at least `SIMPLE_MODE_MIN_BLANK_SEGMENTS` `AIBlankSegment` in allowed block types
@@ -420,9 +448,15 @@ The validator MUST check:
 
 The validator MUST collect all errors instead of stopping at the first error.
 
+The validator MUST NOT silently repair invalid AI output.
+
+The validator MUST NOT convert AI output into domain objects.
+
+The validator MUST NOT create app-generated IDs, including blank IDs.
+
 ---
 
-## 12. Success Output Rules
+## 13. Success Output Rules
 
 For `status: "ok"`:
 
@@ -470,9 +504,11 @@ The validator MUST return `BLANK_NOT_ALLOWED_IN_COMPLETE_MODE` when Complete Mod
 
 For segmented content, text length validation applies to each `AITextSegment.value`, `AIBlankSegment.placeholder`, `AIBlankSegment.hint`, and `AIBlankSegment.answer` separately. The validator MUST NOT concatenate all segment text before applying `TEXT_FIELD_MAX_LENGTHS`.
 
+The validator MUST reject any raw AI segment that contains app-generated fields such as `blankId`.
+
 ---
 
-## 13. Fallback Output Rules
+## 14. Fallback Output Rules
 
 For `status: "needs_more_info"`:
 
@@ -512,7 +548,7 @@ Fallback output MUST NOT be converted into `Diagnosis`.
 
 ---
 
-## 14. Unsafe Text Content
+## 15. Unsafe Text Content
 
 The validator MUST reject text containing markdown code fences or literal HTML tag syntax.
 
@@ -553,7 +589,7 @@ The validator MUST reject any text field containing more than `TEXT_FIELD_MAX_NE
 
 ---
 
-## 15. Helper Validator Targets
+## 16. Helper Validator Targets
 
 The implementation SHOULD be organized around these helper functions:
 
@@ -590,11 +626,18 @@ function validateBlockContent(
 ): DiagnosisOutputValidationError[] {
   throw new Error("TODO: implement block content validation");
 }
+
+function validateSegmentsContent(
+  content: unknown,
+  path: string
+): DiagnosisOutputValidationError[] {
+  throw new Error("TODO: implement segments content validation");
+}
 ```
 
 ---
 
-## 16. Handoff Rules for AI Coding Agents
+## 17. Handoff Rules for AI Coding Agents
 
 When implementing `diagnosisOutputValidator.ts`:
 
@@ -614,6 +657,6 @@ Domain mapping belongs to a separate mapper file.
 
 Recommended future target:
 
-```ts
+```txt
 src/lib/ai/diagnosisOutputMapper.ts
 ```

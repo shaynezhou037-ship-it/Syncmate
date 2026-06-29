@@ -102,6 +102,23 @@ export type BlockFillPolicy =
   | "student_filled"
   | "mixed";
 
+export interface CorrectionTextSegment {
+  kind: "text";
+  value: string;
+}
+
+export interface CorrectionBlankSegment {
+  kind: "blank";
+  blankId: ID;
+  placeholder: string;
+  hint?: string;
+  answer?: string;
+}
+
+export type CorrectionContentSegment =
+  | CorrectionTextSegment
+  | CorrectionBlankSegment;
+
 export type CorrectionBlockContent =
   | {
       kind: "text";
@@ -120,8 +137,8 @@ export type CorrectionBlockContent =
       items: ChecklistItem[];
     }
   | {
-      kind: "blank";
-      placeholder: string;
+      kind: "segments";
+      segments: CorrectionContentSegment[];
     };
 
 export interface ChecklistItem {
@@ -279,7 +296,7 @@ TypeScript does not enforce:
 * array length
 * block compatibility by mode
 * required blocks by mode
-* valid empty or blank content
+* valid segmented or blank content
 * AI output safety
 * fallback handling
 
@@ -287,7 +304,7 @@ Those checks belong to runtime validators, not domain types.
 
 The validator target file is:
 
-```ts
+```txt
 src/lib/ai/diagnosisOutputValidator.ts
 ```
 

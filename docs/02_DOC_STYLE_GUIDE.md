@@ -55,17 +55,17 @@ Each topic must have one source-of-truth document.
 Do not maintain the same detail in multiple places.
 
 ```text
-Product definition           → docs/01_PROJECT_CONTEXT.md
-MVP scope                    → docs/product/01_MVP_SCOPE.md
-Data model                   → docs/data/00_DATA_MODEL.md
-Database schema              → docs/data/01_DATABASE_SCHEMA.md
-API contract                 → docs/api/01_API_CONTRACT.md
-AI output schema             → docs/ai/07_AI_OUTPUT_SCHEMA.md
-AI prompt behavior           → docs/ai/02_AI_PROMPTS.md
-Architecture                 → docs/engineering/01_ARCHITECTURE.md
-Folder structure             → docs/engineering/02_FOLDER_STRUCTURE.md
-Task planning                → docs/tasks/
-Major decisions              → docs/03_DECISION_LOG.md
+Product definition           -> docs/01_PROJECT_CONTEXT.md
+MVP scope                    -> docs/product/01_MVP_SCOPE.md
+Data model                   -> docs/data/00_DATA_MODEL.md
+Database schema              -> docs/data/01_DATABASE_SCHEMA.md
+API contract                 -> docs/api/01_API_CONTRACT.md
+AI output schema             -> docs/ai/07_AI_OUTPUT_SCHEMA.md
+AI prompt behavior           -> docs/ai/02_AI_PROMPTS.md
+Architecture                 -> docs/engineering/01_ARCHITECTURE.md
+Folder structure             -> docs/engineering/02_FOLDER_STRUCTURE.md
+Task planning                -> docs/tasks/
+Major decisions              -> docs/03_DECISION_LOG.md
 ```
 
 If another file needs the same information, link to the source file.
@@ -156,21 +156,25 @@ Future ideas should be placed in a separate `FUTURE` section.
 
 ## 5. Code Over Prose Rule
 
-If a constraint can be expressed in code, use code.
+If a real implementation constraint can be expressed in code, use code.
 
-Prefer:
+TypeScript code blocks MUST be copyable into real `.ts` files when they are presented as implementation source.
+
+Natural-language rules MUST NOT be disguised as executable `as const` constraints unless they will actually be imported or executed.
+
+Prefer for real source definitions:
 
 ```ts
 export type CorrectionMode = "simple" | "complete";
 ```
 
-Avoid:
+Avoid for real source definitions:
 
 ```text
 There are two correction modes. The first one is simple mode and the second one is complete mode.
 ```
 
-Prefer:
+Prefer for real source definitions:
 
 ```ts
 export const MVP_ROUTES = [
@@ -183,11 +187,7 @@ export const MVP_ROUTES = [
 ] as const;
 ```
 
-Avoid:
-
-```text
-The MVP should probably have several pages, including home, add mistake, mistake list, detail page, review page, and export page.
-```
+Use Markdown bullets for conceptual product rules, writing guidance, or non-executable documentation.
 
 Use prose only when code cannot express the decision clearly.
 
@@ -478,12 +478,12 @@ export interface Mistake {
 Before updating a document, identify its role.
 
 ```text
-If product definition changes       → update docs/01_PROJECT_CONTEXT.md
-If MVP scope changes                → update docs/product/01_MVP_SCOPE.md
-If data fields change               → update docs/data/00_DATA_MODEL.md
-If API shape changes                → update docs/api/01_API_CONTRACT.md
-If AI output shape changes          → update docs/ai/07_AI_OUTPUT_SCHEMA.md
-If implementation architecture changes → update docs/engineering/01_ARCHITECTURE.md
+If product definition changes       -> update docs/01_PROJECT_CONTEXT.md
+If MVP scope changes                -> update docs/product/01_MVP_SCOPE.md
+If data fields change               -> update docs/data/00_DATA_MODEL.md
+If API shape changes                -> update docs/api/01_API_CONTRACT.md
+If AI output shape changes          -> update docs/ai/07_AI_OUTPUT_SCHEMA.md
+If implementation architecture changes -> update docs/engineering/01_ARCHITECTURE.md
 ```
 
 Do not update unrelated files.

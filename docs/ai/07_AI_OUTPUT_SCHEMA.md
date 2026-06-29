@@ -39,10 +39,11 @@ API contract belongs to `docs/api/01_API_CONTRACT.md`.
 
 ```ts
 import type {
-  BlockFillPolicy,
+    BlockFillPolicy,
   CorrectionBlockType,
   CorrectionBlockZone,
   CorrectionMode,
+  CorrectionTextSegment,
   DiagnosisStep
 } from "@/types/domain";
 
@@ -126,10 +127,7 @@ export type AICorrectionBlockType = Exclude<
   "question" | "custom"
 >;
 
-export interface AITextSegment {
-  kind: "text";
-  value: string;
-}
+export type AITextSegment = CorrectionTextSegment;
 
 export interface AIBlankSegment {
   kind: "blank";
@@ -138,7 +136,9 @@ export interface AIBlankSegment {
   answer?: string;
 }
 
-export type AICorrectionContentSegment = AITextSegment | AIBlankSegment;
+export type AICorrectionContentSegment =
+  | AITextSegment
+  | AIBlankSegment;
 
 export type AICorrectionBlockContent =
   | {
@@ -170,13 +170,11 @@ export interface AICorrectionBlock {
   type: AICorrectionBlockType;
   zone: CorrectionBlockZone;
   title: string;
-  order: number;
+    order: number;
   fillPolicy: BlockFillPolicy;
   content: AICorrectionBlockContent;
   isLogicBlock?: boolean;
 }
-
-
 ```
 
 ---
@@ -185,9 +183,9 @@ export interface AICorrectionBlock {
 
 M1 uses a single strict schema version:
 
-```ts
-CURRENT_AI_OUTPUT_SCHEMA_VERSION === "diagnosis_output_v1"
-SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS === ["diagnosis_output_v1"]
+```txt
+CURRENT_AI_OUTPUT_SCHEMA_VERSION = "diagnosis_output_v1"
+SUPPORTED_AI_OUTPUT_SCHEMA_VERSIONS = ["diagnosis_output_v1"]
 ```
 
 The version string format is `diagnosis_output_v<major>`.
@@ -269,6 +267,8 @@ The app layer creates:
 * checklist checked state
 * blank IDs for `AIBlankSegment`
 
+The app layer maps `AICorrectionContentSegment` into domain `CorrectionContentSegment`. Raw AI blank segments do not contain `blankId`; the mapper creates `CorrectionBlankSegment.blankId` as defined in `docs/data/00_DATA_MODEL.md`.
+
 ### Simple Mode Blank Segments
 
 A student-completable blank is represented only by `AIBlankSegment` inside `AICorrectionBlockContent` with `kind: "segments"`.
@@ -324,57 +324,56 @@ export const MINIMAL_DIAGNOSIS_OUTPUT_V1_EXAMPLE = {
   mode: "simple",
   language: "zh-CN",
 
-  questionType: "一次方程",
-  coreKeywords: ["移项", "合并同类项"],
+  questionType: "linear equation",
+  coreKeywords: ["transpose"],
   knownInfo: ["2x + 3 = 7"],
-  target: "求 x 的值",
+  target: "solve x",
 
-  wrongStep: "移项时符号没有改变",
-  mistakeCauses: ["符号规则不熟"],
-  weakKnowledgePoints: ["移项"],
+  wrongStep: "sign was not changed",
+  mistakeCauses: ["weak sign rule"],
+  weakKnowledgePoints: ["transposition"],
 
   correctThinkingPath: [
     {
       order: 1,
-      title: "移项",
-      content: "把 3 移到等号右边时要变成 -3。",
-      isWrongStep: true,
-      isBlankInSimpleMode: false
+      title: "transpose",
+      content: "Move 3 to the right side as -3.",
+      isWrongStep: true
     }
   ],
 
-  antiMistakeTip: "移项先看符号是否改变。",
-  reviewSuggestion: "复习 3 道移项题。",
+  antiMistakeTip: "Check signs when moving terms.",
+  reviewSuggestion: "Review three transposition problems.",
 
   correctionBlocks: [
     {
       type: "question_type",
       zone: "cue",
-      title: "题型",
+      title: "Type",
       order: 1,
       fillPolicy: "ai_filled",
       content: {
         kind: "text",
-        text: "一次方程"
+        text: "linear equation"
       }
     },
     {
-      type: "student_blank",
+      type: "formula_or_method",
       zone: "main",
-      title: "自己补",
+      title: "Method",
       order: 2,
       fillPolicy: "student_blank",
-            content: {
+      content: {
         kind: "segments",
         segments: [
           {
             kind: "text",
-            value: "请补全关键步骤："
+            value: "After transposition: "
           },
           {
             kind: "blank",
-            placeholder: "写出移项后的式子",
-            hint: "注意符号变化"
+            placeholder: "write the new equation",
+            hint: "change +3 to -3"
           }
         ]
       },
