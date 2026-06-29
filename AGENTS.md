@@ -1,341 +1,202 @@
 # AGENTS.md
 
-## 0. Project Identity
+stage: M1_MOCK_WEB_MVP
+last_reviewed: 2026-06-29
+owner: AI coding agent behavior and task execution rules
+
+---
+
+## 0. Purpose
+
+This file tells AI coding agents how to work in this repository.
+
+It owns AI-agent behavior, not product truth or engineering truth.
+
+It does not own:
+
+* product scope
+* technical stack
+* folder structure
+* data model
+* API contract
+* AI output schema
+* runtime validation rules
+* milestone task queue
+
+Source-of-truth ownership and conflict resolution are defined in:
+
+```txt
+docs/00_DOCS_GOVERNANCE.md
+```
+
+---
+
+## 1. Project Identity
 
 This repository is for **SyncMate**, an AI-assisted mistake diagnosis and correction-note product for students.
 
-The current development stage is:
+Current stage:
 
 ```txt
 M1_MOCK_WEB_MVP
 ```
 
-The goal of M1 is to build a stable, local, mock web MVP that demonstrates the core mistake-correction flow without real AI, real OCR, real payment, real user accounts, or real production data.
+M1 is a local, mock, offline-runnable web MVP.
+
+The purpose of M1 is to validate the core product flow and structured correction-note experience before adding real AI, OCR, payment, login, database, or production data.
 
 ---
 
-## 1. Required Reading Order
+## 2. Reading Behavior
 
-Before making any code changes, read these files first:
+Do not read every document by default.
 
-```txt
-docs/00_START_HERE.md
-docs/01_PROJECT_CONTEXT.md
-docs/product/01_MVP_SCOPE.md
-docs/engineering/02_FOLDER_STRUCTURE.md
-docs/data/00_DATA_MODEL.md
-docs/api/01_API_CONTRACT.md
-docs/ai/07_AI_OUTPUT_SCHEMA.md
-docs/ai/10_RUNTIME_VALIDATION.md
-```
+For each task, read:
 
-If a task only touches one narrow area, read the relevant documents first and avoid loading unrelated documents.
+1. The GitHub Issue or user task.
+2. `docs/00_START_HERE.md`.
+3. The relevant owner documents for the task.
+4. Any task-specific documents named by the issue.
 
-The documents are the source of truth. If code and docs conflict, follow the docs unless the task explicitly says otherwise.
+Read `docs/00_DOCS_GOVERNANCE.md` when:
+
+* editing documentation
+* resolving document conflicts
+* deciding source-of-truth ownership
+* changing reading order
+* moving to a new milestone
+
+For normal coding tasks, use the relevant owner documents instead of loading the whole repository documentation set.
 
 ---
 
-## 2. Hard Constraints
+## 3. Source-of-Truth Rule
 
-### 2.1 Data Boundary
+Do not invent requirements.
 
-This project must be designed with the following hard constraint:
+Do not duplicate full rules from other documents.
+
+Source-of-truth ownership for product, engineering, folder structure, data, API, AI output, validation, and task queue is defined in:
 
 ```txt
-User data and student learning data must not be sent overseas.
+docs/00_DOCS_GOVERNANCE.md
 ```
+
+Reference the relevant owner document for the task.
+
+Do not copy its rules into this file.
+
+If documents conflict, follow the conflict-resolution rules in `docs/00_DOCS_GOVERNANCE.md`.
+
+Do not silently choose the easier rule.
+
+---
+
+## 4. Non-Negotiable M1 Reminders
+
+These are short execution reminders. Detailed rules live in the owner documents.
 
 During M1:
 
-* Do not call any real external AI API.
-* Do not call any overseas model provider.
-* Do not upload real student data to any third-party service.
-* Do not introduce analytics, tracking, telemetry, or remote logging.
-* Do not store or commit real student questions, names, phone numbers, school names, or private learning records.
 * Use mock data only.
-* Mock data must be clearly fictional sample data. Do not use real or realistic-looking names, school names, phone numbers, or addresses.
-* Acceptance criterion: the M1 app must be able to run the full product flow with networking disabled. If anything breaks when offline, it indicates a hidden external call and must be investigated.
+* Use clearly fictional sample data only.
+* Do not use real student data.
+* Do not call real AI.
+* Do not call OCR.
+* Do not add backend behavior.
+* Do not add persistence.
+* Do not add analytics, telemetry, or remote logging.
+* Do not send user data or student learning data overseas.
+* The app must be able to complete the M1 flow offline.
 
-For future AI integration:
-
-* All AI calls must go through a provider adapter layer.
-* The model provider must be replaceable.
-* Domestic models or locally deployable models should be preferred when real data is involved.
-* Pages and UI components must never call model APIs directly.
-
-### 2.2 Secrets
-
-Never commit:
-
-```txt
-.env
-.env.local
-.env.production
-API keys
-model provider keys
-database credentials
-private tokens
-```
-
-Only commit safe examples such as:
-
-```txt
-.env.example
-```
-
-### 2.3 Scope Control
-
-The current stage is M1 only.
-
-Do not implement the following unless a later task explicitly requests it:
-
-* Real OCR
-* Real AI provider integration
-* Real payment
-* Diagnosis coins
-* Parent dashboard
-* Teacher dashboard
-* Admin dashboard
-* Login / authentication
-* Database persistence
-* Mobile app
-* WeChat Mini Program
-* Cloud deployment
-* Real production user data
-* Multi-user permission system
-* School-level analytics
-
-If a requested change appears to violate M1 scope, stop and explain the issue before coding.
+If a task appears to require breaking one of these rules, stop and report the issue before coding.
 
 ---
 
-## 3. Product Flow Requirements
+## 5. Data Boundary
 
-The M1 product flow must follow this order:
+User data and student learning data must not be sent overseas.
 
-```txt
-open_app
-→ create_mistake
-→ input_or_upload_question
-→ confirm_question
-→ input_wrong_solution
-→ choose_correction_mode
-→ generate_mock_diagnosis
-→ view_correction_note
-→ edit_or_complete_blocks
-→ save_mistake
-→ review_mistake
-→ preview_a4_note
-```
+For M1, no real user data or student learning data should be used at all.
 
-Important product rule:
+Detailed data-boundary, provider, and future AI integration rules belong to the relevant owner documents defined in `docs/00_DOCS_GOVERNANCE.md`.
 
-```txt
-Question confirmation must happen before diagnosis generation.
-```
-
-The app should help the student understand:
-
-* What the question is asking.
-* Where the wrong thinking happened.
-* Why the mistake happened.
-* What the correct thinking path is.
-* What should be reviewed later.
-
-The product should not become a generic answer generator.
+Do not let UI components call model providers directly.
 
 ---
 
-## 4. Engineering Principles
+## 6. Task Execution Rules
 
-### 4.1 Spec-First Development
+Work in small, reviewable steps.
 
-Do not start by inventing code structure freely.
+Prefer tasks that modify a small number of files.
 
-Follow the existing docs:
+Do not perform broad refactors unless the task explicitly asks for one.
 
-```txt
-docs/engineering/02_FOLDER_STRUCTURE.md
-docs/data/00_DATA_MODEL.md
-docs/api/01_API_CONTRACT.md
-docs/ai/07_AI_OUTPUT_SCHEMA.md
-docs/ai/10_RUNTIME_VALIDATION.md
-```
+Do not add impressive but unnecessary features.
 
-When adding or changing code, keep it traceable to the relevant document.
+Do not implement future milestones during M1.
 
-### 4.2 Small Task Rule
+Do not change product scope, data models, service contracts, or AI schemas unless the task explicitly targets the owner document or owner code.
 
-Each task should be small and atomic.
-
-Prefer changing a small number of files per task.
-
-Do not rewrite large parts of the repository unless explicitly asked.
-
-Do not perform broad refactors during feature implementation.
-
-### 4.3 Separation of Concerns
-
-Keep these layers separate:
-
-```txt
-src/types/
-  Type definitions only.
-
-src/lib/ai/
-  AI output validation, mapping, mock generation, and provider abstraction.
-
-src/lib/mock/
-  Mock API service functions.
-
-src/mock/
-  Mock data.
-
-src/components/
-  Reusable UI components.
-
-src/app/
-  Route-level pages and page composition.
-```
-
-Do not put core business logic directly inside page components.
-
-Do not let UI components directly generate diagnosis data.
-
-Do not let UI components directly call model providers.
-
-Persistence (M1):
-
-During M1, application state is held in an in-memory store only.
-
-Do not introduce localStorage, IndexedDB, or any other persistence mechanism in this stage.
-
-Persistent storage, such as localStorage, will be introduced later when the memory/review feature requires it.
-
-Do not let different tasks each invent their own persistence approach.
-
-### 4.4 Replaceability
-
-Design for future replacement:
-
-```txt
-mock diagnosis generator
-→ domestic AI provider adapter
-→ local model adapter
-```
-
-The UI should not need to change when the AI provider changes.
+If a task has an "Allowed Files / Areas" section, stay within it.
 
 ---
 
-## 5. AI Output Requirements
+## 7. Coding Rules
 
-AI output must be treated as untrusted data.
-
-The required pipeline is:
-
-```txt
-raw AI-like output
-→ runtime validator
-→ domain mapper
-→ correction note data
-→ UI rendering
-```
-
-For M1, use mock AI-like output only.
-
-When implementing AI-related code:
-
-* Accept raw input as `unknown`.
-* Validate the runtime structure.
-* Reject invalid schema versions.
-* Reject missing required fields.
-* Reject invalid correction modes.
-* Reject invalid block types.
-* Apply length limits.
-* Never trust TypeScript types alone for AI output.
-* Never render raw AI output directly in the UI.
-
-The schema source of truth is:
-
-```txt
-docs/ai/07_AI_OUTPUT_SCHEMA.md
-docs/ai/10_RUNTIME_VALIDATION.md
-```
-
----
-
-## 6. UI and UX Requirements
-
-The UI should be:
-
-* Clean
-* Student-friendly
-* Structured
-* Easy to read
-* Easy to revise
-* Suitable for demo
-* Suitable for later A4 export
-
-The product should support two correction modes:
-
-```txt
-Simple Mode
-Complete Mode
-```
-
-Simple Mode should preserve blanks or incomplete blocks for student thinking.
-
-Complete Mode may provide fuller explanations, but should not become overly verbose.
-
-Avoid long paragraphs in the UI. Prefer cards, steps, labels, and structured blocks.
-
----
-
-## 7. Code Quality Requirements
-
-Use TypeScript carefully.
-
-Prefer explicit types for domain data.
+Write clear TypeScript.
 
 Avoid `any` unless there is a strong reason.
 
-Prefer readable code over clever code.
+Do not put core business logic directly inside page components.
 
-Avoid premature abstraction.
+Do not let UI components generate diagnosis data.
 
-Avoid adding dependencies unless necessary.
+Do not introduce new dependencies unless they are necessary for the task and allowed by the technical stack owner document.
 
-Before finishing a task, run available validation commands such as:
+---
 
-```txt
+## 8. Validation Rules
+
+Before finishing a task, run the available validation commands requested by the task, such as:
+
+```bash
 npm run lint
 npm run typecheck
 npm run test
 npm run build
 ```
 
-If a command does not exist, report that clearly instead of pretending it ran.
+If a command does not exist, report that clearly.
 
-The runtime validator and domain mapper must have unit tests. These tests must cover the rejection paths: invalid schema version, missing required fields, invalid correction mode, and invalid block type. This is a hard requirement, not optional. Other tests may be added where appropriate.
+Do not claim that a command passed unless it actually passed.
 
----
-
-## 8. Documentation Requirements
-
-When adding important code, update relevant docs if needed.
-
-Do not create unnecessary documentation.
-
-Do not duplicate long content from existing docs.
-
-If a new implementation decision is made, document it briefly in the relevant engineering or task document.
+Do not hide errors.
 
 ---
 
-## 9. Task Completion Format
+## 9. When to Stop
 
-At the end of each task, report in this format:
+Stop and ask before coding if:
+
+* The task conflicts with M1 scope.
+* The task requires real student data.
+* The task requires overseas AI or API calls.
+* The task requires a real model provider.
+* The task requires OCR.
+* The task requires payment, login, database, deployment, or persistence.
+* The task requires large refactoring.
+* The task contradicts owner documents.
+* The expected behavior is ambiguous and cannot be safely inferred.
+
+When in doubt, preserve the current M1 scope.
+
+---
+
+## 10. Task Completion Format
+
+At the end of each task, report:
 
 ```md
 ## Task Summary
@@ -355,56 +216,42 @@ At the end of each task, report in this format:
 - [ ] npm run test
 - [ ] npm run build
 
+Only check a validation item if the command was actually run and passed.
+If a command was not run, missing, or failed, leave it unchecked and summarize the reason in Notes / Risks.
+
 ### Notes / Risks
 - ...
 ```
 
 If something could not be completed, say so clearly.
 
-Do not hide errors.
+If a document conflict was found, mention it in `Notes / Risks`.
 
-Do not claim a command passed unless it actually passed.
-
----
-
-## 10. When to Stop and Ask
-
-Stop and ask before coding if:
-
-* The task conflicts with M1 scope.
-* The task requires real student data.
-* The task requires overseas AI/API calls.
-* The task requires a real model provider.
-* The task requires payment, login, database, or deployment.
-* The task requires large refactoring.
-* The task contradicts the existing docs.
-* The expected behavior is ambiguous and cannot be safely inferred.
-
-When in doubt, preserve the current scope and explain the tradeoff.
+If a validation command failed, include the failure summary.
 
 ---
 
 ## 11. Project Direction Reminder
 
-The goal is not to build a complex AI system first.
+SyncMate should not become a black-box answer generator.
 
-The correct order is:
+Good SyncMate output should help the student understand the mistake, not merely provide a complete answer.
+
+For what good output looks like, including positive behavior, negative behavior, and an end-to-end product example, follow the golden example owner document defined in `docs/00_DOCS_GOVERNANCE.md`.
+
+If the golden example does not exist yet, create it before starting UI-heavy implementation.
+
+M1 should stay small, local, inspectable, and easy to modify.
+
+The working order is:
 
 ```txt
 First close the product loop.
-Then make the AI smarter.
+Then improve intelligence.
 First mock locally.
 Then integrate real providers.
-First structure the data.
-Then polish the UI.
-First make one student's one mistake useful.
-Then expand to review, parent, teacher, and school scenarios.
+First define structure.
+Then polish UI.
 ```
 
 Do not overbuild.
-
-Do not add impressive but unnecessary features.
-
-Do not turn SyncMate into a black-box answer generator.
-
-SyncMate should remain a structured mistake diagnosis and correction-note product.
