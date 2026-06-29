@@ -322,27 +322,58 @@ Owns:
 
 ### 5.1 First Rule: Follow the Owner Document
 
-When two documents conflict, first identify which document owns the affected topic according to Section 4.
+When documents conflict, first identify which document owns the affected topic according to the source-of-truth ownership section.
 
 The owner document wins for its owned topic.
 
 Examples:
 
-* Product flow conflict → follow `docs/product/01_MVP_SCOPE.md`.
-* Technical stack conflict → follow `docs/engineering/00_TECH_STACK.md`.
-* Folder responsibility conflict → follow `docs/engineering/02_FOLDER_STRUCTURE.md`.
-* Domain field conflict → follow `docs/data/00_DATA_MODEL.md`.
-* Mock service contract conflict → follow `docs/api/01_API_CONTRACT.md`.
-* AI output shape conflict → follow `docs/ai/07_AI_OUTPUT_SCHEMA.md`.
-* Runtime validation behavior conflict → follow `docs/ai/10_RUNTIME_VALIDATION.md`.
-* Task order conflict → follow `docs/tasks/01_MILESTONE_M1.md`.
-* AI agent behavior conflict → follow `AGENTS.md`.
+* Product flow conflict → follow the product scope owner document.
+* Technical stack conflict → follow the technical stack owner document.
+* Folder responsibility conflict → follow the folder structure owner document.
+* Domain field conflict → follow the data model owner document.
+* Mock service contract conflict → follow the API / service contract owner document.
+* AI output shape conflict → follow the AI output schema owner document.
+* Runtime validation behavior conflict → follow the runtime validation owner document.
+* Task order conflict → follow the milestone task document.
+* AI-agent behavior conflict → follow `AGENTS.md`.
+* Data-boundary or privacy-principle conflict → follow the project context owner document.
+
+Do not use the global fallback order to override a clear owner document.
 
 ---
 
-### 5.2 Global Fallback Order
+### 5.2 Task Document Rule
 
-If ownership is unclear, use this single global fallback order.
+Milestone and task documents own task execution details, such as:
+
+* task order
+* task-specific acceptance criteria
+* allowed files / areas
+* issue templates
+* milestone definition of done
+
+However, milestone and task documents do not own product truth, technical stack truth, data model truth, API truth, AI schema truth, or validation truth.
+
+If a task document conflicts with an owner document, apply this rule:
+
+```txt
+Owner truth wins for the owned topic.
+Task document wins only for task execution details.
+```
+
+Examples:
+
+* If a task document says to add a dependency that the technical stack document forbids, follow the technical stack document.
+* If a task document defines the order of T1 before T2, follow the task document.
+* If a task document narrows a task more strictly than the technical stack, follow the narrower task requirement for that task.
+* If a task document tries to redefine a domain field, follow the data model owner document.
+
+---
+
+### 5.3 Global Fallback Order
+
+Use this single global fallback order only when ownership is unclear.
 
 ```txt
 1. Current explicit instruction from the project owner
@@ -368,7 +399,7 @@ If a current instruction appears to conflict with hard constraints, stop and ask
 
 ---
 
-### 5.3 What to Do When a Conflict Is Found
+### 5.4 What to Do When a Conflict Is Found
 
 When a conflict is found:
 
@@ -379,7 +410,6 @@ When a conflict is found:
 5. Report the conflict in the task completion notes.
 6. If the conflict affects implementation safety, data boundary, or product scope, stop and ask before coding.
 7. If the conflict is minor and the owner document is clear, follow the owner document and mention the inconsistency.
-
 ---
 
 ## 6. Duplication Policy
