@@ -1,320 +1,253 @@
 # 01_MILESTONE_M1.md
 
-## 0. Milestone Identity
+stage: M1_MOCK_WEB_MVP
+last_reviewed: 2026-06-29
+owner: M1 task queue, task execution order, and milestone definition of done
 
-Milestone name:
+---
+
+## 0. Purpose
+
+This document owns the M1 implementation plan.
+
+It defines:
+
+* M1 success definition
+* M1 task queue
+* task order
+* task-level acceptance criteria
+* GitHub Issue template
+* M1 definition of done
+
+It does not own:
+
+* product flow details
+* technical stack
+* folder structure
+* data model
+* API contract
+* AI output schema
+* runtime validation rules
+
+Those topics are owned by their respective source-of-truth documents.
+
+---
+
+## 1. Milestone Identity
+
+Milestone:
 
 ```txt
 M1_MOCK_WEB_MVP
 ```
 
-Milestone goal:
+M1 is a local, mock, offline-runnable web MVP.
 
-Build a local, mock, offline-runnable web MVP for SyncMate that demonstrates the full mistake diagnosis and correction-note flow without real AI, real OCR, payment, login, database, cloud deployment, or real student data.
+The goal is to demonstrate the SyncMate mistake diagnosis and correction-note experience without production infrastructure.
 
 M1 is not a production system.
 
-M1 is a product-flow and data-structure validation milestone.
+M1 validates:
+
+* product flow
+* structured correction-note experience
+* data boundaries
+* mock service boundaries
+* AI-like output validation and mapping
+* review and A4-preview direction
 
 ---
 
-## 1. M1 Success Definition
+## 2. Source Documents for M1
 
-M1 is successful when a user can complete the following flow locally:
+Use these owner documents instead of redefining their rules here:
 
 ```txt
-open_app
-→ create_mistake
-→ input_or_upload_question
-→ confirm_question
-→ input_wrong_solution
-→ choose_correction_mode
-→ generate_mock_diagnosis
-→ view_correction_note
-→ edit_or_complete_blocks
-→ save_mistake
-→ review_mistake
-→ preview_a4_note
+Project entry map:
+docs/00_START_HERE.md
+
+Documentation governance:
+docs/00_DOCS_GOVERNANCE.md
+
+Product scope and M1 flow:
+docs/product/01_MVP_SCOPE.md
+
+Technical stack and M1 engineering boundaries:
+docs/engineering/00_TECH_STACK.md
+
+Folder structure:
+docs/engineering/02_FOLDER_STRUCTURE.md
+
+Data model:
+docs/data/00_DATA_MODEL.md
+
+Mock service contract:
+docs/api/01_API_CONTRACT.md
+
+AI output schema:
+docs/ai/07_AI_OUTPUT_SCHEMA.md
+
+Runtime validation:
+docs/ai/10_RUNTIME_VALIDATION.md
 ```
 
-The experience should clearly demonstrate that SyncMate is not just giving an answer, but helping the student understand and organize a mistake.
-
-The app must be able to run the full flow with networking disabled.
-
-If anything breaks when offline, it indicates a hidden external call and must be investigated.
+If this document conflicts with an owner document, follow `docs/00_DOCS_GOVERNANCE.md`.
 
 ---
 
-## 2. Hard Boundaries
+## 3. M1 Success Definition
 
-### 2.1 No Real Data
-
-M1 must use mock data only.
-
-Mock data must be clearly fictional.
-
-Do not use:
-
-* Real student names
-* Real school names
-* Real phone numbers
-* Real addresses
-* Real private learning records
-* Real uploaded student images
-* Real exam papers copied from private sources
-
-Use obvious fictional identifiers such as:
+M1 is successful when a user can complete the full M1 product flow defined in:
 
 ```txt
-Demo Student
-Sample Class
-Mock Mistake 001
-Fictional Middle School
+docs/product/01_MVP_SCOPE.md
 ```
 
-### 2.2 No External AI or OCR
+The app must run locally and complete the flow with networking disabled.
 
-M1 must not call:
+The final experience should show that SyncMate is not a generic answer generator.
 
-* OpenAI API
-* Claude API
-* Gemini API
-* Overseas AI model APIs
-* Domestic AI model APIs
-* OCR APIs
-* Remote model endpoints
-* Remote image processing services
+It should help the student understand:
 
-M1 uses deterministic mock AI-like output only.
+* what the question asks
+* where the wrong thinking happened
+* why the mistake happened
+* what the correct thinking path is
+* what should be reviewed later
 
-The same input should always produce the same mock diagnosis output.
+The detailed product-quality target should be grounded in the golden example document once it is created.
 
-### 2.3 No Backend
-
-M1 has no backend.
-
-Do not add:
-
-* API routes
-* Server actions
-* Server-side data fetching
-* Database clients
-* Backend frameworks
-* Cloud storage
-* Remote logging
-* Analytics
-* Telemetry
-
-Treat the app as a client-rendered mock.
-
-Server Components may only be used as static shells if needed.
-
-### 2.4 No Persistence
-
-M1 application state must be held in memory only.
-
-Do not add:
-
-* localStorage
-* IndexedDB
-* cookies for app state
-* database persistence
-* remote persistence
-* browser cache as product persistence
-
-React state is allowed only for local UI state, such as form inputs, toggles, and current step.
-
-Cross-page or cross-component app data, such as mistakes and review queue, must live in the in-memory store under:
+Required golden example backlog item:
 
 ```txt
-src/lib/mock/
+docs/examples/01_GOLDEN_MISTAKE_FLOW.md
+```
+
+This file should be created before or alongside the first UI-heavy implementation task.
+
+---
+
+## 4. M1 Hard Reminders
+
+These are execution reminders, not full source-of-truth definitions.
+
+During M1:
+
+* Use mock data only.
+* Use clearly fictional sample data only.
+* Do not use real student data.
+* Do not call real AI.
+* Do not call OCR.
+* Do not add backend behavior.
+* Do not add persistence.
+* Do not add analytics, telemetry, or remote logging.
+* Do not send user data or student learning data overseas.
+* The app must work offline.
+
+Detailed technical boundaries are owned by:
+
+```txt
+docs/engineering/00_TECH_STACK.md
+```
+
+Detailed product scope is owned by:
+
+```txt
+docs/product/01_MVP_SCOPE.md
 ```
 
 ---
 
-## 3. Product Requirements
+## 5. M1 Task Queue
 
-### 3.1 Core Product Rule
-
-Question confirmation must happen before diagnosis generation.
-
-The app must not generate a diagnosis before the user confirms the question.
-
-### 3.2 Correction Modes
-
-M1 must support two modes:
+Recommended implementation order:
 
 ```txt
-Simple Mode
-Complete Mode
-```
-
-Simple Mode:
-
-* Preserves blanks or incomplete blocks.
-* Encourages the student to think.
-* Should not over-explain everything.
-
-Complete Mode:
-
-* Provides fuller explanation.
-* Should still be structured.
-* Should not become a long generic answer.
-
-### 3.3 Correction Note
-
-The correction note should include structured blocks such as:
-
-* Question summary
-* Known information
-* Target
-* Mistake location
-* Mistake cause
-* Weak knowledge points
-* Correct thinking path
-* Review reminder
-* Student editable area
-
-The exact structure should follow the data model and AI output schema documents.
-
----
-
-## 4. Engineering Requirements
-
-### 4.1 Required Stack
-
-Use:
-
-```txt
-Next.js App Router
-TypeScript
-React
-Tailwind CSS
-Vitest
-npm
-```
-
-Do not introduce another framework unless explicitly approved.
-
-### 4.2 Required Layers
-
-Keep these layers separate:
-
-```txt
-src/types/
-  Type definitions only.
-
-src/lib/ai/
-  Runtime validator, domain mapper, mock diagnosis generator, future provider abstraction.
-
-src/lib/mock/
-  Mock API service functions and in-memory store.
-
-src/mock/
-  Fictional mock data.
-
-src/components/
-  Reusable UI components.
-
-src/app/
-  Route-level pages and page composition.
-```
-
-Do not put core business logic directly inside page components.
-
-Do not let UI components directly generate diagnosis data.
-
-Do not let UI components call model providers.
-
-### 4.3 Required AI-like Pipeline
-
-All mock AI-like output must follow this pipeline:
-
-```txt
-raw AI-like output
-→ runtime validator
-→ domain mapper
-→ correction note data
-→ UI rendering
-```
-
-Raw AI-like output is untrusted.
-
-It must be validated before it is mapped or rendered.
-
----
-
-## 5. Required Validation
-
-The project should support these commands where possible:
-
-```bash
-npm run dev
-npm run lint
-npm run typecheck
-npm run test
-npm run build
-```
-
-Before marking a task complete, run available validation commands.
-
-If a command does not exist, report that clearly.
-
-Do not claim a command passed unless it actually passed.
-
----
-
-## 6. Required Tests
-
-The runtime validator and domain mapper must have unit tests.
-
-These tests must cover rejection paths:
-
-```txt
-invalid schema version
-missing required fields
-invalid correction mode
-invalid block type
-```
-
-This is a hard requirement.
-
-Validator and mapper tests need only Vitest.
-
-They do not require `@testing-library`, because they test pure functions, not UI.
-
-Optional tests may be added for:
-
-* Mock API behavior
-* Review queue logic
-* Correction mode behavior
-* A4 note rendering helpers
-
----
-
-## 7. M1 Task Queue
-
-The recommended M1 implementation order is:
-
-```txt
-T0 Repo Bootstrap
-T1 Source-of-Truth Types
-T2 Runtime Validator
-T3 Domain Mapper
-T4 Mock Data and In-Memory Store
-T5 Mock API Service Functions
-T6 Core Product Pages
-T7 A4 Preview and Review Flow
-T8 QA, Offline Check, and Documentation Polish
+T0 Documentation Alignment
+T1 Golden Example
+T2 Repo Bootstrap
+T3 Source-of-Truth Types
+T4 Runtime Validator
+T5 Domain Mapper
+T6 Mock Data and In-Memory Store
+T7 Mock Service Functions
+T8 Core Product Pages
+T9 Review Flow and A4 Preview
+T10 QA, Offline Check, and Documentation Polish
 ```
 
 Do not skip directly to UI before the types, validator, mapper, and mock service boundaries are established.
 
+Do not implement future milestones during M1.
+
 ---
 
-## 8. Task Details
+## 6. Task Details
 
-### T0 Repo Bootstrap
+### T0 Documentation Alignment
+
+Goal:
+
+Make sure the core documentation files are aligned before implementation starts.
+
+Expected work:
+
+```txt
+Confirm AGENTS.md exists.
+Confirm docs/00_DOCS_GOVERNANCE.md exists.
+Confirm docs/00_START_HERE.md points to governance.
+Confirm docs/engineering/00_TECH_STACK.md is updated.
+Confirm docs/tasks/01_MILESTONE_M1.md is updated.
+```
+
+Acceptance criteria:
+
+* `AGENTS.md` is the only AI-agent instruction filename.
+* No `AGENT.md` duplicate remains.
+* Governance document defines source-of-truth ownership.
+* START_HERE points to governance without duplicating it.
+* Major docs have stage, last_reviewed, and owner metadata.
+* Any known document conflict is reported.
+
+---
+
+### T1 Golden Example
+
+Goal:
+
+Create the golden end-to-end product example.
+
+Expected file:
+
+```txt
+docs/examples/01_GOLDEN_MISTAKE_FLOW.md
+```
+
+The example should include:
+
+```txt
+question
+→ student wrong solution
+→ confirmed question
+→ mock diagnosis output
+→ mapped domain data
+→ final correction note
+→ review prompt
+→ A4 preview expectation
+```
+
+Acceptance criteria:
+
+* The example uses clearly fictional sample data.
+* The example shows why SyncMate is not just an answer generator.
+* The wrong step and mistake cause are explicit.
+* The correction note includes student-facing structure.
+* Simple Mode and Complete Mode expectations are distinguishable.
+* The example can guide later UI work.
+
+---
+
+### T2 Repo Bootstrap
 
 Goal:
 
@@ -335,20 +268,26 @@ src/mock/
 
 Acceptance criteria:
 
-* `npm run dev` works.
-* `npm run typecheck` exists.
-* `npm run test` exists.
-* `npm run build` works or any failure is clearly documented.
-* No API routes are added.
-* No external AI, OCR, analytics, telemetry, or remote calls are added.
+* Uses Next.js App Router.
+* Uses TypeScript.
+* Uses Tailwind CSS.
+* Uses Vitest.
+* Adds validation scripts where appropriate.
+* Does not add API routes.
+* Does not add server actions.
+* Does not add external AI, OCR, analytics, telemetry, payment, or database dependencies.
+* `npm run dev` works or any issue is clearly reported.
+* `npm run typecheck` exists or missing status is clearly reported.
+* `npm run test` exists or missing status is clearly reported.
+* `npm run build` works or any issue is clearly reported.
 
 ---
 
-### T1 Source-of-Truth Types
+### T3 Source-of-Truth Types
 
 Goal:
 
-Create TypeScript types that reflect the existing product, data, API, and AI schema documents.
+Create TypeScript types that reflect the owner documents.
 
 Expected files:
 
@@ -361,14 +300,22 @@ src/types/api.ts
 Acceptance criteria:
 
 * Types are explicit and readable.
-* Avoid `any`.
-* AI raw input is not trusted as typed data.
-* Types are traceable to the docs.
-* No UI logic is added in this task.
+* Avoids `any`.
+* Raw AI-like input is not trusted as typed domain data.
+* Types are traceable to owner documents.
+* No UI logic is added.
+
+Relevant owner documents:
+
+```txt
+docs/data/00_DATA_MODEL.md
+docs/api/01_API_CONTRACT.md
+docs/ai/07_AI_OUTPUT_SCHEMA.md
+```
 
 ---
 
-### T2 Runtime Validator
+### T4 Runtime Validator
 
 Goal:
 
@@ -384,16 +331,21 @@ src/lib/ai/diagnosisOutputValidator.test.ts
 Acceptance criteria:
 
 * Validator accepts raw input as `unknown`.
-* Validator rejects invalid schema version.
-* Validator rejects missing required fields.
-* Validator rejects invalid correction mode.
-* Validator rejects invalid block type.
-* Unit tests cover required rejection paths.
-* No UI code is added in this task.
+* Validator follows the runtime validation owner document.
+* Required rejection paths are tested.
+* No UI code is added.
+* No external services are called.
+
+Relevant owner documents:
+
+```txt
+docs/ai/07_AI_OUTPUT_SCHEMA.md
+docs/ai/10_RUNTIME_VALIDATION.md
+```
 
 ---
 
-### T3 Domain Mapper
+### T5 Domain Mapper
 
 Goal:
 
@@ -412,12 +364,20 @@ Acceptance criteria:
 * Mapper produces domain objects used by the app.
 * Mapper does not render UI.
 * Mapper does not call external services.
-* Unit tests cover required rejection or failure paths where applicable.
-* Output is deterministic.
+* Mapping behavior is deterministic.
+* Unit tests cover important success and failure paths.
+
+Relevant owner documents:
+
+```txt
+docs/data/00_DATA_MODEL.md
+docs/ai/07_AI_OUTPUT_SCHEMA.md
+docs/ai/10_RUNTIME_VALIDATION.md
+```
 
 ---
 
-### T4 Mock Data and In-Memory Store
+### T6 Mock Data and In-Memory Store
 
 Goal:
 
@@ -434,13 +394,19 @@ Acceptance criteria:
 
 * Mock data is clearly fictional.
 * No real or realistic-looking personal data is used.
-* Mistakes and review queue data live in the in-memory store.
-* No localStorage, IndexedDB, cookies, or database is added.
+* Cross-page app data lives in the in-memory store.
+* No localStorage, IndexedDB, cookies, database, or remote storage is added.
 * Store behavior is simple and inspectable.
+
+Relevant owner document:
+
+```txt
+docs/engineering/00_TECH_STACK.md
+```
 
 ---
 
-### T5 Mock API Service Functions
+### T7 Mock Service Functions
 
 Goal:
 
@@ -453,7 +419,7 @@ src/lib/mock/mistakeService.ts
 src/lib/mock/reviewService.ts
 ```
 
-Possible functions:
+Possible functions, if consistent with the API contract owner document:
 
 ```txt
 createMistake()
@@ -469,20 +435,26 @@ markReviewComplete()
 
 Acceptance criteria:
 
-* UI can call service functions.
 * Services use the in-memory store.
+* Services follow the API contract owner document.
 * Services do not make network requests.
 * Services do not use API routes.
 * Services do not directly render UI.
 * Full service flow can run offline.
 
+Relevant owner document:
+
+```txt
+docs/api/01_API_CONTRACT.md
+```
+
 ---
 
-### T6 Core Product Pages
+### T8 Core Product Pages
 
 Goal:
 
-Build the core app pages using the established mock services.
+Build the core app pages using established types, validator, mapper, store, and mock services.
 
 Expected routes:
 
@@ -499,18 +471,27 @@ Acceptance criteria:
 * User can input or simulate uploading a question.
 * User must confirm the question before diagnosis.
 * User can input wrong solution.
-* User can choose Simple Mode or Complete Mode.
+* User can choose correction mode.
 * User can generate deterministic mock diagnosis.
 * User can view a structured correction note.
 * Core business logic remains outside page components.
+* UI quality is guided by the golden example.
+
+Relevant owner documents:
+
+```txt
+docs/product/01_MVP_SCOPE.md
+docs/examples/01_GOLDEN_MISTAKE_FLOW.md
+docs/engineering/00_TECH_STACK.md
+```
 
 ---
 
-### T7 A4 Preview and Review Flow
+### T9 Review Flow and A4 Preview
 
 Goal:
 
-Add review queue and A4 correction-note preview.
+Add review queue and A4-style correction-note preview.
 
 Expected routes or components:
 
@@ -525,14 +506,14 @@ Acceptance criteria:
 
 * Saved mistakes can appear in a review queue.
 * User can open a review item.
-* User can preview a correction note in A4-like layout.
+* User can preview a correction note in an A4-like layout.
 * A4 preview is local and does not call external services.
 * No PDF generation library is required in M1 unless explicitly approved.
 * Print-friendly layout is enough for M1.
 
 ---
 
-### T8 QA, Offline Check, and Documentation Polish
+### T10 QA, Offline Check, and Documentation Polish
 
 Goal:
 
@@ -540,43 +521,60 @@ Verify that M1 is stable, readable, and offline-runnable.
 
 Acceptance criteria:
 
-* Full flow works locally.
-* Full flow works with networking disabled.
+* Full product flow works locally.
+* Full product flow works with networking disabled.
 * No hidden external calls are present.
-* `npm run lint` is run if available.
-* `npm run typecheck` is run if available.
-* `npm run test` is run if available.
-* `npm run build` is run if available.
+* No real AI, OCR, backend, persistence, or analytics has been introduced.
+* Validation commands are run if available.
 * Any missing scripts or failures are clearly documented.
-* Relevant docs are updated if implementation decisions changed.
+* Relevant docs are updated only when the owner document needs updating.
+* Known document conflicts are reported.
 
 ---
 
-## 9. Definition of Done for M1
+## 7. Validation Expectations
 
-M1 is done when all of the following are true:
+For implementation tasks, run available commands:
 
-* The full product flow works locally.
-* The full product flow works offline.
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+If a command does not exist, report it clearly.
+
+Do not claim a command passed unless it actually passed.
+
+---
+
+## 8. Definition of Done for M1
+
+M1 is done when:
+
+* The full product flow defined by the product scope owner document works locally.
+* The full flow works offline.
 * No real AI is called.
 * No OCR is called.
-* No external API is called.
-* No real student data is used.
-* No backend is introduced.
+* No backend behavior is introduced.
 * No persistence is introduced.
-* Mock data is fictional.
+* No analytics, telemetry, or remote logging is introduced.
+* No real student data is used.
+* Mock data is clearly fictional.
 * Runtime validator exists.
 * Domain mapper exists.
 * Validator and mapper have required unit tests.
 * User can create, confirm, diagnose, save, review, and preview a mistake.
-* Code structure follows the documented folder boundaries.
+* Code structure follows documented folder boundaries.
 * Validation commands have been run or missing commands are clearly reported.
+* The golden example exists and matches the implemented product direction.
 
 ---
 
-## 10. GitHub Issue Template for M1 Tasks
+## 9. GitHub Issue Template for M1 Tasks
 
-Use this format when creating GitHub Issues for M1.
+Use this format for M1 GitHub Issues.
 
 ```md
 # Task: <task name>
@@ -592,35 +590,28 @@ Describe the specific goal of this task.
 ## Required Reading
 
 - docs/00_START_HERE.md
-- docs/engineering/00_TECH_STACK.md
-- docs/tasks/01_MILESTONE_M1.md
-- Add task-specific docs here.
+- Add only the relevant owner documents for this task.
 
 ## Allowed Files / Areas
 
 List the files or folders this task may create or modify.
 
+## Source-of-Truth Owners
+
+List the owner documents that control this task.
+
 ## Out of Scope
 
-This task must not add:
+This task must not add future-milestone behavior.
 
-- Real AI calls
-- OCR
-- API routes
-- Server actions
-- Database
-- localStorage / IndexedDB
-- Login
-- Payment
-- Analytics / telemetry
-- Real student data
+Mention task-specific out-of-scope items here.
 
 ## Acceptance Criteria
 
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
-- [ ] Full task works offline if applicable.
+- [ ] Works offline if applicable.
 - [ ] No hidden external calls are introduced.
 
 ## Validation
@@ -635,8 +626,6 @@ Run if available:
 If any command is missing or fails, report it clearly.
 
 ## Completion Report
-
-Use the required task completion format:
 
 ### Files Created
 - ...
@@ -656,62 +645,52 @@ Use the required task completion format:
 
 ---
 
-## 11. First GitHub Issue Recommendation
+## 10. First GitHub Issue Recommendation
 
 The first implementation issue should be:
 
 ```txt
-Bootstrap Next.js M1 foundation
+Task: Documentation Alignment for M1
 ```
 
 Purpose:
 
-Create the basic local app foundation without implementing product logic yet.
+Make sure the documentation system is consistent before coding begins.
 
-Important:
-
-The first issue should not implement the full SyncMate flow.
-
-It should only prepare the project structure, scripts, and baseline app shell.
-
-Recommended scope:
+After that, create:
 
 ```txt
-Next.js App Router
-TypeScript
-Tailwind CSS
-Vitest
-Basic folder structure
-Basic local landing/app shell
-Validation scripts
-No API routes
-No server actions
-No external calls
+Task: Golden Example for M1 Mistake Flow
 ```
+
+Then start:
+
+```txt
+Task: Bootstrap Next.js M1 Foundation
+```
+
+Do not start UI implementation before the golden example exists.
 
 ---
 
-## 12. M1 Philosophy Reminder
+## 11. M1 Philosophy Reminder
 
 M1 should stay small and inspectable.
 
 The correct order is:
 
 ```txt
-First close the product loop.
-Then improve intelligence.
-First mock locally.
-Then integrate real providers.
-First define data structure.
-Then polish UI.
-First validate one student's one mistake.
-Then expand to review, parent, teacher, and school scenarios.
+Align the docs.
+Create the golden example.
+Bootstrap the app.
+Define types.
+Validate and map AI-like output.
+Build mock services.
+Then build UI.
 ```
 
 Do not overbuild.
 
 Do not create a black box.
-
-Do not add impressive but unnecessary features.
 
 Do not sacrifice clarity for cleverness.
