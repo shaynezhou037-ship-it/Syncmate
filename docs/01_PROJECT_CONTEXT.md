@@ -319,3 +319,15 @@ Future product directions may include:
 - mini-program
 
 FUTURE items MUST NOT be treated as MVP requirements.
+
+## Data Boundary and Privacy Principle
+
+SyncMate is designed for education and student-learning scenarios.
+
+User data and student learning data must not be sent overseas.
+
+During M1, the project must use mock data only and must not use real student names, real school names, real learning records, real uploaded images, or real private exam materials.
+
+Future real-data AI integration must respect domestic data-boundary constraints. Domestic model providers or locally deployable models should be preferred when real student-learning data is involved.
+
+This document owns the high-level data-boundary and privacy principle. Technical enforcement details, such as offline execution, no hidden remote calls, no remote fonts, and no analytics, are owned by `docs/engineering/00_TECH_STACK.md`.
