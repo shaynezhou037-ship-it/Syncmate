@@ -28,6 +28,7 @@ It does not own:
 * API contract
 * AI output schema
 * runtime validation rules
+* high-level data-boundary and privacy principles
 
 Those topics are owned by their respective source-of-truth documents.
 
@@ -51,7 +52,7 @@ M1 validates:
 
 * product flow
 * structured correction-note experience
-* data boundaries
+* data-boundary enforcement
 * mock service boundaries
 * AI-like output validation and mapping
 * review and A4-preview direction
@@ -60,7 +61,17 @@ M1 validates:
 
 ## 2. Source Documents for M1
 
-Use these owner documents instead of redefining their rules here:
+This section is a convenience index, not a second source of truth.
+
+The authoritative ownership map is defined in:
+
+```txt
+docs/00_DOCS_GOVERNANCE.md
+```
+
+Use the governance document when resolving conflicts or deciding which document owns a rule.
+
+Common M1 source documents:
 
 ```txt
 Project entry map:
@@ -68,6 +79,9 @@ docs/00_START_HERE.md
 
 Documentation governance:
 docs/00_DOCS_GOVERNANCE.md
+
+Project context and high-level data-boundary principle:
+docs/01_PROJECT_CONTEXT.md
 
 Product scope and M1 flow:
 docs/product/01_MVP_SCOPE.md
@@ -91,17 +105,13 @@ Runtime validation:
 docs/ai/10_RUNTIME_VALIDATION.md
 ```
 
-If this document conflicts with an owner document, follow `docs/00_DOCS_GOVERNANCE.md`.
+Do not update this convenience index as if it were the owner map. If document ownership changes, update `docs/00_DOCS_GOVERNANCE.md` first.
 
 ---
 
 ## 3. M1 Success Definition
 
-M1 is successful when a user can complete the full M1 product flow defined in:
-
-```txt
-docs/product/01_MVP_SCOPE.md
-```
+M1 is successful when a user can complete the full M1 product flow defined in the product scope owner document.
 
 The app must run locally and complete the flow with networking disabled.
 
@@ -115,15 +125,21 @@ It should help the student understand:
 * what the correct thinking path is
 * what should be reviewed later
 
-The detailed product-quality target should be grounded in the golden example document once it is created.
+The detailed product-quality target should be grounded in the golden example document.
 
-Required golden example backlog item:
+Required golden example document:
 
 ```txt
 docs/examples/01_GOLDEN_MISTAKE_FLOW.md
 ```
 
-This file should be created before or alongside the first UI-heavy implementation task.
+The golden example must be completed before the first UI-heavy implementation task begins.
+
+In this milestone, the first UI-heavy task is:
+
+```txt
+T8 Core Product Pages
+```
 
 ---
 
@@ -144,17 +160,11 @@ During M1:
 * Do not send user data or student learning data overseas.
 * The app must work offline.
 
-Detailed technical boundaries are owned by:
+Detailed technical boundaries are owned by the technical stack owner document.
 
-```txt
-docs/engineering/00_TECH_STACK.md
-```
+Detailed product scope is owned by the product scope owner document.
 
-Detailed product scope is owned by:
-
-```txt
-docs/product/01_MVP_SCOPE.md
-```
+The high-level data-boundary and privacy principle is owned by the project context owner document.
 
 ---
 
@@ -178,6 +188,8 @@ T10 QA, Offline Check, and Documentation Polish
 
 Do not skip directly to UI before the types, validator, mapper, and mock service boundaries are established.
 
+Do not start T8 before the golden example exists.
+
 Do not implement future milestones during M1.
 
 ---
@@ -194,6 +206,7 @@ Expected work:
 
 ```txt
 Confirm AGENTS.md exists.
+Confirm no duplicate AI-agent instruction filename exists.
 Confirm docs/00_DOCS_GOVERNANCE.md exists.
 Confirm docs/00_START_HERE.md points to governance.
 Confirm docs/engineering/00_TECH_STACK.md is updated.
@@ -202,9 +215,9 @@ Confirm docs/tasks/01_MILESTONE_M1.md is updated.
 
 Acceptance criteria:
 
-* `AGENTS.md` is the only AI-agent instruction filename.
-* No `AGENT.md` duplicate remains.
-* Governance document defines source-of-truth ownership.
+* `AGENTS.md` is the canonical AI-agent instruction filename.
+* No duplicate AI-agent instruction file, such as `AGENT.md`, exists.
+* Governance document defines source-of-truth ownership and conflict resolution.
 * START_HERE points to governance without duplicating it.
 * Major docs have stage, last_reviewed, and owner metadata.
 * Any known document conflict is reported.
@@ -244,6 +257,7 @@ Acceptance criteria:
 * The correction note includes student-facing structure.
 * Simple Mode and Complete Mode expectations are distinguishable.
 * The example can guide later UI work.
+* T8 must not begin before this file exists.
 
 ---
 
@@ -276,6 +290,7 @@ Acceptance criteria:
 * Does not add API routes.
 * Does not add server actions.
 * Does not add external AI, OCR, analytics, telemetry, payment, or database dependencies.
+* Does not use `next/font/google` or build-time remote font fetching.
 * `npm run dev` works or any issue is clearly reported.
 * `npm run typecheck` exists or missing status is clearly reported.
 * `npm run test` exists or missing status is clearly reported.
@@ -467,6 +482,7 @@ src/app/app/mistakes/[id]/page.tsx
 
 Acceptance criteria:
 
+* Golden example exists before this task begins.
 * User can create a mistake.
 * User can input or simulate uploading a question.
 * User must confirm the question before diagnosis.
@@ -547,6 +563,8 @@ If a command does not exist, report it clearly.
 
 Do not claim a command passed unless it actually passed.
 
+Only mark a validation item as passed if it was actually run and passed.
+
 ---
 
 ## 8. Definition of Done for M1
@@ -623,7 +641,8 @@ Run if available:
 - [ ] npm run test
 - [ ] npm run build
 
-If any command is missing or fails, report it clearly.
+Only check a validation item if the command was actually run and passed.
+If a command was not run, missing, or failed, leave it unchecked and summarize the reason in Notes / Risks.
 
 ## Completion Report
 
