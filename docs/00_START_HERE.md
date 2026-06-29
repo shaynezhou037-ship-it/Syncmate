@@ -1,5 +1,9 @@
 # SyncMate Start Here
 
+stage: M1_MOCK_WEB_MVP  
+last_reviewed: 2026-06-29  
+owner: Project entry map and reading guidance
+
 > Entry document for humans and AI coding agents.
 
 ---
@@ -9,11 +13,11 @@
 This file defines:
 
 ```text
-- required reading order
+- required reading guidance
 - source-of-truth map
 - current project stage
-- non-negotiable coding rules
-- documentation update rules
+- documentation governance entry point
+- task completion format
 ```
 
 This file does not define:
@@ -25,6 +29,8 @@ This file does not define:
 - API contract
 - AI output schema
 - implementation details
+- documentation governance rules
+- conflict-resolution rules
 ```
 
 ---
@@ -54,13 +60,29 @@ TODO: document not created yet
 
 Do not invent missing decisions.
 
+### 2.1 Documentation Governance Reading Rule
+
+For normal coding tasks, do not load every documentation file by default.
+
+Read `docs/00_DOCS_GOVERNANCE.md` when the task involves:
+
+- creating or editing documentation
+- resolving conflicts between documents
+- deciding source-of-truth ownership
+- changing reading order or source-of-truth maps
+- moving to a new milestone
+- reviewing cross-document consistency
+
+For narrow coding tasks, read only the relevant owner documents and task-specific documents.
+
 ---
 
 ## 3. Source of Truth Map
 
 ```text
 Product definition       -> docs/01_PROJECT_CONTEXT.md
-Documentation rules      -> docs/02_DOC_STYLE_GUIDE.md
+Documentation governance -> docs/00_DOCS_GOVERNANCE.md
+Documentation style      -> docs/02_DOC_STYLE_GUIDE.md
 MVP scope                -> docs/product/01_MVP_SCOPE.md
 User flow                -> docs/product/03_USER_FLOW.md
 Page list                -> docs/product/04_PAGE_LIST.md
@@ -196,6 +218,14 @@ M1 MUST:
 - set cost limit before real AI testing
 
 ---
+
+Documentation ownership and conflict resolution are defined in:
+
+```text
+docs/00_DOCS_GOVERNANCE.md
+```
+
+When updating documentation, follow the owner document for the affected topic instead of repeating the same rule across multiple files.
 
 ## 10. Documentation Update Rules
 
