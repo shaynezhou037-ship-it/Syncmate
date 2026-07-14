@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SyncMate · 错题本演示 V4</title>
+<style>
+:root{
+  --ink:#1c1a26; --ink-2:#4a4658; --ink-3:#8b8798;
+  --paper:#f7f4ee; --paper-2:#fffdf8; --line:#e4ddd0;
+  --indigo:#3d4cd6; --indigo-700:#2c37a8; --indigo-50:#eceefb;
+  --teal:#138a7a; --teal-50:#e2f3f0;
+  --coral:#e0533d; --coral-50:#fcebe7; --coral-700:#b83a26;
+  --amber:#e0a32e; --amber-50:#fbf2dd;
+  --cue-bg:#f3efe6; --note-bg:#eef2ee; --note-edge:#cdd8cd; --cue-edge:#e0d8c8;
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  --e1:0 1px 2px rgba(28,26,38,.06),0 1px 3px rgba(28,26,38,.05);
+  --e2:0 4px 12px rgba(28,26,38,.08),0 2px 4px rgba(28,26,38,.05);
+  --e3:0 12px 32px rgba(28,26,38,.14),0 4px 8px rgba(28,26,38,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 30% 20%,#2a2940,#16151f 70%);color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;gap:40px;flex-wrap:wrap;}
+.mono{font-family:"SF Mono","JetBrains Mono",ui-monospace,Menlo,monospace;}
+
+/* ===== phone shell ===== */
+.phone{position:relative;width:390px;height:844px;flex:none;background:#0c0b12;border-radius:54px;padding:13px;box-shadow:0 0 0 2px #2a2837,0 30px 80px rgba(0,0,0,.6),inset 0 0 4px rgba(255,255,255,.1);}
+.notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:128px;height:30px;background:#0c0b12;border-radius:0 0 18px 18px;z-index:300;}
+.screen{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:var(--paper);}
+.screen::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.5;background-image:radial-gradient(var(--line) .5px,transparent .5px);background-size:22px 22px;}
+.statusbar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 34px;font-size:14px;font-weight:600;z-index:100;}
+.statusbar .dots{display:flex;gap:5px;align-items:center;}
+
+.page{position:absolute;inset:0;padding-top:50px;display:flex;flex-direction:column;z-index:2;opacity:0;pointer-events:none;transform:translateX(24px);transition:opacity .42s,transform .42s;}
+.page.active{opacity:1;pointer-events:auto;transform:none;}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+
+.appbar{display:flex;align-items:center;gap:12px;padding:8px 18px 12px;}
+.appbar .back{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper-2);box-shadow:var(--e1);font-size:18px;color:var(--ink-2);cursor:pointer;flex:none;}
+.appbar h1{font-size:19px;font-weight:800;letter-spacing:-.3px;}
+.appbar .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px;}
+.appbar .grow{flex:1;}
+.appbar .act{font-size:13px;font-weight:700;color:var(--indigo);cursor:pointer;}
+
+.btn{border:none;border-radius:12px;padding:13px 16px;font-size:14px;font-weight:800;font-family:inherit;background:var(--indigo);color:#fff;box-shadow:var(--e2);cursor:pointer;transition:.15s;}
+.btn:active{transform:translateY(1px);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn.ghost{background:var(--paper-2);color:var(--ink-2);border:1px solid var(--line);box-shadow:var(--e1);}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);}
+.pill.kc{background:var(--indigo-50);color:var(--indigo);}
+.pill.grade{background:var(--amber-50);color:var(--amber);}
+.pill.cause{background:var(--coral-50);color:var(--coral-700);}
+.pill.done{background:var(--teal-50);color:var(--teal);}
+
+/* ===== HOME ===== */
+.home-hero{padding:6px 20px 14px;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand .mark{display:inline-grid;grid-template-columns:repeat(2,12px);grid-gap:3px;}
+.brand .mark i{width:12px;height:12px;border-radius:3.5px;background:var(--indigo);}
+.brand .mark i:nth-child(2){background:#9aa3ec;}.brand .mark i:nth-child(3){background:#c1c6f4;}
+.brand .name{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.brand .name span{color:var(--indigo);}
+.greet{font-size:13px;color:var(--ink-3);margin-top:6px;}
+.stat-row{display:flex;gap:10px;padding:4px 20px 16px;}
+.stat{flex:1;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;box-shadow:var(--e1);}
+.stat b{font-size:24px;font-weight:800;display:block;line-height:1;}
+.stat .lbl{font-size:11px;color:var(--ink-3);margin-top:6px;}
+.stat.a b{color:var(--coral);}.stat.b b{color:var(--indigo);}.stat.c b{color:var(--teal);}
+.sec-title{display:flex;align-items:center;gap:8px;padding:6px 20px 10px;font-size:14px;font-weight:800;}
+.sec-title .tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-3);}
+.card-list{padding:0 16px 20px;display:flex;flex-direction:column;gap:11px;}
+.mcard{position:relative;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px 13px 17px;box-shadow:var(--e1);cursor:pointer;overflow:hidden;}
+.mcard .ribbon{position:absolute;left:0;top:0;bottom:0;width:4px;}
+.mcard.coral .ribbon{background:var(--coral);}.mcard.indigo .ribbon{background:var(--indigo);}.mcard.amber .ribbon{background:var(--amber);}
+.mcard .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
+.mcard .q{font-size:13px;line-height:1.5;color:var(--ink);font-weight:500;}
+.mcard .foot{display:flex;justify-content:space-between;margin-top:9px;font-size:10.5px;color:var(--ink-3);}
+.mcard .foot .due{font-weight:700;color:var(--coral);}
+
+.tabbar{position:relative;height:74px;display:flex;align-items:flex-start;padding-top:9px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:40;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--ink-3);}
+.tab svg{width:22px;height:22px;}
+.tab.on{color:var(--indigo);}
+.fab-slot{width:64px;flex:none;}
+.fab{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);width:58px;height:58px;border-radius:50%;background:var(--indigo);box-shadow:0 8px 20px rgba(61,76,214,.4);display:flex;align-items:center;justify-content:center;z-index:50;cursor:pointer;}
+.fab svg{width:26px;height:26px;stroke:#fff;}
+
+/* ===== sheet ===== */
+.sheet-mask{position:absolute;inset:0;background:rgba(20,18,30,.45);opacity:0;pointer-events:none;transition:.3s;z-index:150;}
+.sheet-mask.show{opacity:1;pointer-events:auto;}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper-2);border-radius:24px 24px 0 0;padding:10px 18px 30px;z-index:160;transform:translateY(110%);visibility:hidden;transition:transform .34s cubic-bezier(.3,1,.4,1),visibility .34s;box-shadow:0 -8px 30px rgba(0,0,0,.16);}
+.sheet.show{transform:none;visibility:visible;}
+.sheet .handle{width:40px;height:4px;border-radius:99px;background:var(--line);margin:4px auto 14px;}
+.sheet h3{font-size:16px;font-weight:800;margin-bottom:12px;}
+.opt{display:flex;align-items:center;gap:13px;padding:13px;border-radius:14px;border:1px solid var(--line);margin-bottom:9px;cursor:pointer;transition:.15s;background:var(--paper);}
+.opt:active{background:var(--indigo-50);border-color:var(--indigo);}
+.opt .ic{width:42px;height:42px;border-radius:11px;background:var(--indigo-50);display:flex;align-items:center;justify-content:center;flex:none;}
+.opt .ic svg{width:22px;height:22px;stroke:var(--indigo);}
+.opt.alb .ic{background:var(--teal-50);}.opt.alb .ic svg{stroke:var(--teal);}
+.opt.hand .ic{background:var(--amber-50);}.opt.hand .ic svg{stroke:var(--amber);}
+.opt .txt b{font-size:14px;font-weight:800;display:block;}
+.opt .txt span{font-size:11px;color:var(--ink-3);}
+.opt .arrow{margin-left:auto;color:var(--ink-3);font-size:20px;}
+
+/* ===== ALBUM ===== */
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 14px 100px;}
+.photo{position:relative;aspect-ratio:3/4;border-radius:8px;overflow:hidden;background:#fff;border:1px solid var(--line);cursor:pointer;}
+.photo svg{width:100%;height:100%;}
+.photo .paper-mini{width:100%;height:100%;}
+.photo .check{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--indigo);color:#fff;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.photo.sel{outline:3px solid var(--indigo);outline-offset:-3px;}
+.photo.sel .check{display:flex;}
+.album-bar{padding:12px 16px 28px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);}
+.album-bar .btn{width:100%;}
+
+/* ===== OCR / SPLIT (multi-select draggable) ===== */
+.ocr-modetabs{display:flex;gap:8px;padding:4px 16px 10px;}
+.ocr-modetabs .mt{flex:1;text-align:center;padding:8px;border-radius:11px;font-size:12px;font-weight:800;border:1.5px solid var(--line);background:var(--paper-2);color:var(--ink-2);cursor:pointer;transition:.15s;}
+.ocr-modetabs .mt.on{border-color:var(--indigo);background:var(--indigo-50);color:var(--indigo);}
+.ocr-stage{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ocr-hint{font-size:11.5px;color:var(--ink-2);text-align:center;padding:0 16px 8px;}
+.ocr-hint b{color:var(--indigo);}
+.paper-doc{position:relative;width:300px;margin:0 auto;flex:none;box-shadow:var(--e3);border:1px solid var(--line);overflow:hidden;background:#fff;}
+.doc-scroll{flex:1;overflow-y:auto;padding:2px 0 110px;}
+.doc-scroll::-webkit-scrollbar{display:none;}
+.scanline{position:absolute;left:0;right:0;top:0;height:30px;background:linear-gradient(180deg,rgba(61,76,214,0),rgba(61,76,214,.28));border-bottom:1.5px solid var(--indigo);z-index:6;opacity:0;}
+.scanline.run{animation:scan 1.7s ease-in-out forwards;}
+@keyframes scan{0%{opacity:1;top:0;}92%{opacity:1;}100%{opacity:0;top:100%;}}
+/* draggable cut boxes */
+.cut{position:absolute;border:1.5px dashed var(--teal);background:rgba(19,138,122,.07);border-radius:5px;opacity:0;pointer-events:none;transition:opacity .3s,border-color .15s,background .15s;z-index:5;}
+.cut.show{opacity:1;pointer-events:auto;}
+.cut.wrong{border-color:var(--coral);background:rgba(224,83,61,.09);border-style:solid;}
+.cut .num{position:absolute;top:-9px;left:6px;font-size:8.5px;font-weight:800;color:#fff;background:var(--teal);padding:1px 6px;border-radius:99px;white-space:nowrap;}
+.cut.wrong .num{background:var(--coral);}
+.cut.dragsel{border-color:var(--indigo);border-style:solid;background:rgba(61,76,214,.1);z-index:9;box-shadow:0 0 0 2px var(--indigo-50);}
+.cut.dragsel .num{background:var(--indigo);}
+/* drag handles (corners) */
+.cut .hd{position:absolute;width:11px;height:11px;border-radius:50%;background:#fff;border:2px solid var(--indigo);display:none;z-index:10;}
+.cut.dragsel .hd{display:block;}
+.cut .hd.tl{left:-6px;top:-6px;cursor:nwse-resize;}
+.cut .hd.tr{right:-6px;top:-6px;cursor:nesw-resize;}
+.cut .hd.bl{left:-6px;bottom:-6px;cursor:nesw-resize;}
+.cut .hd.br{right:-6px;bottom:-6px;cursor:nwse-resize;}
+/* single-mode user box */
+.cut.user{border-color:var(--indigo);border-style:solid;background:rgba(61,76,214,.08);}
+.cut.user .num{background:var(--indigo);}
+.split-bar{padding:11px 16px 26px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;}
+.split-bar .cnt{font-size:12px;font-weight:700;color:var(--ink-2);flex:1;}
+.split-bar .cnt b{color:var(--coral);}
+.split-bar .btn{flex:none;padding:11px 18px;}
+
+/* ===== CONFIRM (原题 vs 录入) ===== */
+.cfm-wrap{flex:1;overflow-y:auto;padding:8px 16px 120px;}
+.cfm-wrap::-webkit-scrollbar{display:none;}
+.cmp{display:flex;flex-direction:column;gap:10px;}
+.cmp-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 13px;box-shadow:var(--e1);}
+.cmp-card .lab{font-size:10.5px;font-weight:800;color:var(--ink-3);display:flex;align-items:center;gap:6px;margin-bottom:8px;text-transform:none;}
+.cmp-card .lab .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);}
+.cmp-card.orig .lab .dot{background:var(--amber);}
+.cmp-card.ocr .lab .dot{background:var(--teal);}
+.cmp-card .body{font-size:12.5px;line-height:1.6;color:var(--ink);}
+.cmp-card .body .miss{background:var(--coral-50);color:var(--coral-700);border-radius:4px;padding:0 3px;font-weight:700;}
+.scan-shot{width:100%;border-radius:8px;border:1px solid var(--line);}
+.cfm-judge{display:flex;gap:9px;margin:14px 0 6px;}
+.cfm-judge .jb{flex:1;border-radius:13px;padding:11px;text-align:center;font-size:12.5px;font-weight:800;border:1.5px solid var(--line);background:var(--paper-2);cursor:pointer;transition:.15s;color:var(--ink-2);}
+.cfm-judge .jb.ok{border-color:var(--teal);}
+.cfm-judge .jb.ok.on{background:var(--teal-50);color:var(--teal);border-color:var(--teal);}
+.cfm-judge .jb.bad.on{background:var(--coral-50);color:var(--coral-700);border-color:var(--coral);}
+.ok-panel{margin-top:6px;border-radius:14px;border:1px solid var(--teal);background:var(--teal-50);padding:13px;display:none;align-items:center;gap:12px;}
+.ok-panel.show{display:flex;animation:fade .3s;}
+.ok-panel .okp-ic{width:34px;height:34px;border-radius:50%;background:var(--teal);color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+.ok-panel .okp-tx b{font-size:13px;font-weight:800;color:var(--teal);display:block;}
+.ok-panel .okp-tx span{font-size:11px;color:var(--ink-2);}
+.fix-panel{margin-top:6px;border-radius:14px;border:1px dashed var(--coral);background:var(--coral-50);padding:13px;display:none;}
+.fix-panel.show{display:block;animation:fade .3s;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.fix-panel .fh{font-size:12px;font-weight:800;color:var(--coral-700);margin-bottom:9px;}
+.fix-opt{display:flex;align-items:center;gap:11px;background:var(--paper-2);border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:8px;cursor:pointer;transition:.15s;}
+.fix-opt:active{border-color:var(--indigo);background:var(--indigo-50);}
+.fix-opt .n{width:26px;height:26px;border-radius:8px;background:var(--ink);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+.fix-opt .ft b{font-size:12.5px;display:block;}
+.fix-opt .ft span{font-size:10.5px;color:var(--ink-3);}
+.cfm-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px 28px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:50;}
+.cfm-bar .btn{width:100%;}
+
+/* scan-shot enhanced fallback panel */
+.scanfix{margin-top:6px;border-radius:14px;border:1px solid var(--teal);background:var(--teal-50);padding:13px;display:none;}
+.scanfix.show{display:block;animation:fade .3s;}
+.scanfix .sh{font-size:12px;font-weight:800;color:var(--teal);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.scanfix .sd{font-size:10.5px;color:var(--ink-2);margin-bottom:10px;line-height:1.5;}
+.bw-shot{width:100%;background:#fff;border:1px solid var(--ink);border-radius:6px;padding:10px 11px;}
+.bw-shot text{font-weight:600;}
+.scanfix .rulebox{margin-top:10px;font-size:10.5px;line-height:1.6;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;}
+.scanfix .rulebox b{color:var(--ink);}
+.scanfix .rulebox .no{color:var(--coral-700);font-weight:700;}
+.scanfix .rulebox .yes{color:var(--teal);font-weight:700;}
+
+/* ===== GATE (三选一 防替代思考) ===== */
+.gate-wrap{flex:1;overflow-y:auto;padding:6px 16px 150px;}
+.gate-wrap::-webkit-scrollbar{display:none;}
+.gate-lead{background:var(--amber-50);border:1px solid #efd9a6;border-radius:13px;padding:12px 14px;font-size:11.5px;line-height:1.6;color:#7a5a14;margin-bottom:14px;}
+.gate-lead b{color:#5e4410;}
+.gate-q{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.55;margin-bottom:14px;box-shadow:var(--e1);}
+.gate-q .ql{font-size:10px;font-weight:800;color:var(--teal);margin-bottom:5px;}
+.gchoice{position:relative;border:1.5px solid var(--line);border-radius:15px;padding:14px;margin-bottom:12px;cursor:pointer;background:var(--paper-2);box-shadow:var(--e1);transition:.18s;overflow:hidden;}
+.gchoice:active{transform:scale(.99);}
+.gchoice.sel{border-color:var(--indigo);box-shadow:0 0 0 2px var(--indigo-50),var(--e2);}
+.gchoice .gh{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.gchoice .badge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;}
+.gchoice.m1 .badge{background:var(--cue-bg);}
+.gchoice.m2 .badge{background:var(--amber-50);}
+.gchoice.m3 .badge{background:var(--indigo-50);}
+.gchoice .gt{font-size:14px;font-weight:800;}
+.gchoice .gt .lv{font-size:9.5px;font-weight:700;color:var(--ink-3);display:block;margin-top:1px;}
+.gchoice .gd{font-size:11px;color:var(--ink-2);line-height:1.55;margin-bottom:10px;}
+.gchoice .radio{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;}
+.gchoice.sel .radio{border-color:var(--indigo);background:var(--indigo);}
+.gchoice.sel .radio::after{content:"";width:7px;height:7px;border-radius:50%;background:#fff;}
+/* mini preview inside each choice */
+.gprev{border-radius:9px;border:1px solid var(--line);background:#fff;padding:8px 9px;font-size:0;}
+.gprev .gp-q{font-size:9px;line-height:1.4;color:var(--ink);font-weight:600;display:block;margin-bottom:5px;}
+.gprev .gp-row{display:flex;gap:5px;}
+.gprev .gp-slot{flex:1;border:1px dashed var(--ink-3);border-radius:5px;padding:4px 5px;min-height:30px;}
+.gprev .gp-slot .st{font-size:8px;font-weight:800;color:var(--ink-3);display:block;margin-bottom:2px;}
+.gprev .gp-slot .blank{height:5px;background:repeating-linear-gradient(90deg,var(--line),var(--line) 8px,transparent 8px,transparent 12px);border-radius:2px;margin:3px 0;}
+.gprev .gp-slot.fill{border-style:solid;border-color:var(--note-edge);background:var(--note-bg);}
+.gprev .gp-slot.fill .ln{height:4px;background:var(--ink-3);opacity:.32;border-radius:2px;margin:3px 0;}
+.gprev .gp-slot.fill .ln.s{width:60%;}
+.gprev .gp-empty{font-size:8.5px;color:var(--ink-3);text-align:center;padding:6px 0;font-style:italic;}
+.gate-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px 28px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);z-index:50;}
+.gate-bar .btn{width:100%;}
+
+/* ===== LOADING ===== */
+.loading-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center;}
+.spinner{margin-bottom:20px;}.spinner svg{animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ltitle{font-size:16px;font-weight:800;margin-bottom:6px;}
+.lsub{font-size:12px;color:var(--ink-3);line-height:1.5;margin-bottom:22px;}
+.loading-steps{width:100%;max-width:260px;text-align:left;}
+.lstep{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3);padding:6px 0;transition:.3s;}
+.lstep .dot{width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--ink-3);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+.lstep.on{color:var(--ink);font-weight:700;}.lstep.on .dot{background:var(--indigo);color:#fff;}
+.lstep.done .dot{background:var(--teal);color:#fff;}
+
+/* ===== DETAIL (A4 + 双击浮层) ===== */
+.zoom-note{font-size:10.5px;color:var(--ink-3);text-align:center;padding:6px 16px 4px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.zoom-note b{color:var(--indigo);}
+.a4-stage{flex:1;overflow-y:auto;padding:6px 0 110px;display:flex;flex-direction:column;align-items:center;}
+.a4-stage::-webkit-scrollbar{display:none;}
+.a4{width:330px;height:467px;background:#fff;box-shadow:var(--e3);border:1px solid var(--line);position:relative;padding:18px 16px 14px;transition:transform .3s;transform-origin:top center;display:flex;flex-direction:column;overflow:hidden;}
+.a4.zoom{transform:scale(1.32);margin-bottom:160px;}
+.a4 .a4head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid var(--ink);padding-bottom:6px;margin-bottom:9px;}
+.a4 .a4head .t{font-size:12px;font-weight:800;}
+.a4 .a4head .meta{font-size:7.5px;color:var(--ink-3);text-align:right;line-height:1.5;}
+.a4 .a4body{display:flex;gap:9px;flex:0 0 auto;}
+.a4 .a4spacer{flex:1 1 auto;min-height:12px;}
+.a4 .a4cue{width:35%;border-right:1px solid var(--line);padding-right:8px;display:flex;flex-direction:column;gap:7px;}
+.a4 .a4note{flex:1;display:flex;flex-direction:column;gap:7px;}
+/* A4 content block = double-tap editable unit */
+.ablk{position:relative;border-radius:6px;padding:4px 5px;cursor:pointer;transition:box-shadow .15s,background .15s;border:1px solid transparent;}
+.ablk:hover{background:#fbfaf6;}
+.ablk.tapping{animation:tapflash .5s;}
+@keyframes tapflash{0%,100%{box-shadow:0 0 0 0 rgba(61,76,214,0);}40%{box-shadow:0 0 0 2px var(--indigo);background:var(--indigo-50);}}
+.ablk .h{font-size:8px;font-weight:800;color:var(--indigo);margin-bottom:2px;display:flex;align-items:center;gap:3px;}
+.a4cue .ablk .h{color:var(--coral);}
+.ablk .c{font-size:7.5px;line-height:1.55;color:var(--ink-2);}
+.ablk .c .ct{display:inline-block;color:var(--coral);font-weight:700;margin-right:3px;}
+.ablk .c .stp{margin:2px 0;}
+.ablk .c .stp.e{color:var(--coral);font-weight:600;}
+.ablk .c .fml{font-family:"SF Mono",monospace;background:#f3f1ea;border:1px solid var(--line);border-radius:3px;padding:2px 4px;font-size:7.5px;text-align:center;margin:2px 0;}
+/* layer-type chip on each block */
+.ablk .lt{position:absolute;top:3px;right:4px;font-size:6.5px;font-weight:800;padding:1px 4px;border-radius:99px;letter-spacing:.02em;}
+.ablk .lt.txt{background:var(--teal-50);color:var(--teal);}
+.ablk .lt.ink{background:var(--indigo-50);color:var(--indigo);}
+.ablk .lt.img{background:var(--amber-50);color:var(--amber);}
+/* handwriting block visual */
+.ablk.handwrite .c{font-family:"Caveat","Comic Sans MS",cursive;font-size:11px;color:var(--indigo-700);transform:rotate(-.6deg);}
+.ablk .stroke-svg{width:100%;height:auto;display:block;}
+/* ===== manage mode: delete badge & add-block ===== */
+.ablk .del-x{position:absolute;top:-6px;left:-6px;width:16px;height:16px;border-radius:50%;background:var(--coral);color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;z-index:12;cursor:pointer;box-shadow:var(--e1);}
+.a4.manage .ablk{border:1px dashed var(--coral);background:#fdf3f0;}
+.a4.manage .ablk .del-x{display:flex;}
+.a4.manage .ablk .lt{display:none;}
+.ablk.removing{animation:ablkout .32s forwards;}
+@keyframes ablkout{to{opacity:0;transform:scale(.82);}}
+.add-ablk{border:1px dashed var(--ink-3);border-radius:6px;padding:5px;text-align:center;color:var(--ink-3);font-size:7.5px;font-weight:800;cursor:pointer;transition:.15s;display:none;align-items:center;justify-content:center;gap:3px;margin-top:2px;}
+.add-ablk:active{background:var(--indigo-50);border-color:var(--indigo);color:var(--indigo);}
+.a4.manage .add-ablk{display:flex;}
+.add-ablk .plus{font-weight:800;font-size:10px;}
+/* manage toggle in appbar */
+.mng-btn{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;box-shadow:var(--e1);}
+.mng-btn.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+/* undo bar */
+.undobar{position:absolute;left:14px;right:14px;bottom:96px;background:var(--ink);color:#fff;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:12px;z-index:90;transform:translateY(20px);opacity:0;pointer-events:none;transition:.28s;box-shadow:var(--e3);}
+.undobar.show{transform:none;opacity:1;pointer-events:auto;}
+.undobar .ut{flex:1;font-size:12.5px;font-weight:600;}
+.undobar .ut b{color:#aab1f5;}
+.undobar button{border:none;border-radius:9px;padding:7px 14px;font-size:12.5px;font-weight:800;font-family:inherit;cursor:pointer;background:#fff;color:var(--ink);}
+/* module gallery sheet */
+.gal-opt{display:flex;align-items:center;gap:11px;padding:11px;border-radius:12px;border:1px solid var(--line);margin-bottom:8px;cursor:pointer;transition:.15s;background:var(--paper);}
+.gal-opt:active{background:var(--indigo-50);border-color:var(--indigo);}
+.gal-opt .gic{width:38px;height:38px;border-radius:10px;background:var(--indigo-50);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;}
+.gal-opt .gtx b{font-size:13px;font-weight:800;display:block;}
+.gal-opt .gtx span{font-size:10.5px;color:var(--ink-3);}
+.gal-opt .gadd{margin-left:auto;color:var(--indigo);font-size:20px;font-weight:800;}
+.a4 .a4sum{border-top:1.5px solid var(--ink);padding-top:7px;flex:0 0 auto;}
+.a4 .a4sum .h{font-size:8px;font-weight:800;margin-bottom:4px;}
+.a4 .a4sum .c{font-size:7.5px;line-height:1.6;color:var(--ink-2);}
+.a4 .a4sum .key{background:var(--teal-50);color:var(--teal);font-weight:700;padding:1px 5px;border-radius:99px;}
+.a4 .brand-foot{text-align:right;margin-top:9px;padding-top:5px;font-size:7.5px;font-weight:800;color:var(--ink-3);letter-spacing:.04em;border-top:1px dashed var(--line);}
+.a4 .brand-foot span{color:var(--indigo);}
+.detail-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px 28px;background:rgba(255,253,248,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;gap:10px;z-index:50;}
+.detail-bar .btn{flex:1;}.detail-bar .btn.ghost{flex:.7;}
+.zoom-btn{position:absolute;right:16px;bottom:92px;width:42px;height:42px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--e3);z-index:55;cursor:pointer;font-size:18px;}
+
+/* ===== EDIT FLOAT LAYER (双击浮层) ===== */
+.float-mask{position:absolute;inset:0;background:rgba(20,18,30,.55);opacity:0;pointer-events:none;transition:.28s;z-index:200;backdrop-filter:blur(2px);}
+.float-mask.show{opacity:1;pointer-events:auto;}
+.floatbox{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-46%) scale(.92);opacity:0;background:var(--paper-2);border-radius:20px;box-shadow:var(--e3);z-index:210;pointer-events:none;transition:.3s cubic-bezier(.3,1,.4,1);max-height:74%;display:flex;flex-direction:column;overflow:hidden;}
+.floatbox.show{opacity:1;transform:translateY(-50%);pointer-events:auto;}
+.fb-head{display:flex;align-items:center;gap:9px;padding:14px 16px 10px;border-bottom:1px solid var(--line);}
+.fb-head .ti{font-size:14px;font-weight:800;flex:1;}
+.fb-head .ti small{display:block;font-size:10px;color:var(--ink-3);font-weight:600;margin-top:1px;}
+.fb-head .x{width:28px;height:28px;border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink-2);cursor:pointer;}
+/* edit tool tabs inside float */
+.fb-tools{display:flex;gap:6px;padding:10px 16px 0;}
+.fb-tools .tl{flex:1;text-align:center;padding:7px;border-radius:9px;font-size:11.5px;font-weight:800;border:1.5px solid var(--line);background:var(--paper);color:var(--ink-2);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.fb-tools .tl.on{border-color:var(--indigo);background:var(--indigo-50);color:var(--indigo);}
+.fb-tools .tl svg{width:14px;height:14px;}
+.fb-body{flex:1;overflow-y:auto;padding:12px 16px;}
+.fb-body::-webkit-scrollbar{display:none;}
+.fb-edit{min-height:100px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px;font-size:13px;line-height:1.65;color:var(--ink);outline:none;}
+.fb-edit:focus{border-color:var(--indigo);box-shadow:0 0 0 2px var(--indigo-50);}
+.fb-canvas-wrap{position:relative;border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;}
+.fb-canvas-wrap .gridbg{position:absolute;inset:0;background-image:linear-gradient(var(--line) .5px,transparent .5px),linear-gradient(90deg,var(--line) .5px,transparent .5px);background-size:18px 18px;opacity:.5;pointer-events:none;}
+#fbCanvas{display:block;touch-action:none;position:relative;z-index:2;width:100%;}
+.canvas-tools{display:flex;gap:7px;align-items:center;margin-top:10px;}
+.canvas-tools .ctl{padding:6px 11px;border-radius:9px;font-size:11px;font-weight:700;border:1px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink-2);}
+.canvas-tools .ctl.on{border-color:var(--indigo);color:var(--indigo);background:var(--indigo-50);}
+.canvas-tools .swatch{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;}
+.canvas-tools .swatch.on{box-shadow:0 0 0 2px var(--indigo);}
+.canvas-hint{font-size:10px;color:var(--ink-3);margin-top:8px;text-align:center;}
+.fb-recog{margin-top:10px;font-size:10.5px;color:var(--teal);background:var(--teal-50);border-radius:9px;padding:8px 10px;line-height:1.5;display:flex;gap:7px;align-items:flex-start;}
+.fb-recog b{color:var(--teal);}
+.fb-recog .ico{flex:none;}
+.fb-foot{display:flex;gap:10px;padding:10px 16px 16px;border-top:1px solid var(--line);}
+.fb-foot .btn{flex:1;}.fb-foot .btn.ghost{flex:.6;}
+
+/* ===== export ===== */
+.exp-mask{position:absolute;inset:0;background:rgba(20,18,30,.5);opacity:0;pointer-events:none;transition:.3s;z-index:240;display:flex;align-items:center;justify-content:center;padding:30px;}
+.exp-mask.show{opacity:1;pointer-events:auto;}
+.exp-card{background:var(--paper-2);border-radius:20px;padding:24px 22px;width:100%;max-width:300px;text-align:center;box-shadow:var(--e3);transform:scale(.9);transition:.3s;}
+.exp-mask.show .exp-card{transform:none;}
+.exp-card .ring{width:72px;height:72px;margin:0 auto 14px;}
+.exp-card .done-ic{width:72px;height:72px;margin:0 auto 14px;display:none;}
+.exp-card h3{font-size:16px;font-weight:800;margin-bottom:6px;}
+.exp-card p{font-size:11.5px;color:var(--ink-3);margin-bottom:16px;line-height:1.5;}
+.exp-actions{display:flex;flex-direction:column;gap:9px;}
+.exp-actions .btn{width:100%;}
+
+/* ===== onboarding ===== */
+.onb-mask{position:absolute;inset:0;background:rgba(12,11,18,.78);opacity:0;pointer-events:none;transition:.3s;z-index:260;display:flex;align-items:center;justify-content:center;padding:26px;}
+.onb-mask.show{opacity:1;pointer-events:auto;}
+.onb-card{background:var(--paper-2);border-radius:22px;padding:26px 22px 20px;width:100%;max-width:310px;box-shadow:var(--e3);text-align:center;transform:scale(.92);transition:.3s;}
+.onb-mask.show .onb-card{transform:none;}
+.onb-art{width:120px;height:120px;margin:0 auto 16px;}
+.onb-step{display:none;}.onb-step.on{display:block;}
+.onb-card h3{font-size:18px;font-weight:800;margin-bottom:8px;}
+.onb-card p{font-size:12.5px;color:var(--ink-2);line-height:1.6;margin-bottom:18px;}
+.onb-dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px;}
+.onb-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:.2s;}
+.onb-dots i.on{background:var(--indigo);width:18px;border-radius:99px;}
+.onb-card .btn{width:100%;}
+.onb-skip{margin-top:10px;font-size:11.5px;color:var(--ink-3);cursor:pointer;}
+
+/* ===== toast ===== */
+.toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:10px 18px;border-radius:99px;z-index:280;opacity:0;transition:.25s;pointer-events:none;max-width:80%;text-align:center;box-shadow:var(--e3);}
+.toast.show{opacity:1;transform:translateX(-50%);}
+
+/* ===== control console ===== */
+.ctrl{width:340px;flex:none;color:#e9e8f0;}
+.ctrl h2{font-size:17px;font-weight:800;margin-bottom:6px;color:#fff;}
+.ctrl .lead{font-size:12px;line-height:1.6;color:#a8a6bb;margin-bottom:16px;}
+.step-btn{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#d5d4e2;border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:8px;transition:.15s;}
+.step-btn:hover{background:rgba(255,255,255,.1);}
+.step-btn.cur{background:var(--indigo);border-color:var(--indigo);color:#fff;box-shadow:0 6px 18px rgba(61,76,214,.4);}
+.step-btn .n{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.14);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+.step-btn.cur .n{background:rgba(255,255,255,.25);}
+.nav{display:flex;gap:8px;margin:6px 0 14px;}
+.nav button{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#d5d4e2;border-radius:10px;padding:9px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+.nav button:hover{background:rgba(255,255,255,.14);}
+.tip{font-size:11px;line-height:1.6;color:#8a89a0;background:rgba(255,255,255,.04);border-radius:11px;padding:12px;border:1px solid rgba(255,255,255,.07);}
+.tip b{color:#c1c0d4;}
+.tip .hl{color:#9aa3ec;font-weight:700;}
+@media(max-width:820px){.ctrl{width:390px;}}
+/* ===== 学情 ANALYTICS ===== */
+.an-head{padding:10px 20px 8px;}
+.an-head h1{font-size:21px;font-weight:800;letter-spacing:-.4px;}
+.an-head .sub{font-size:12px;color:var(--ink-3);margin-top:4px;}
+.an-head .range{display:inline-flex;gap:4px;margin-top:11px;background:var(--cue-bg);border:1px solid var(--cue-edge);border-radius:var(--r-pill);padding:3px;}
+.an-head .range span{font-size:11.5px;font-weight:700;color:var(--ink-3);padding:5px 13px;border-radius:var(--r-pill);cursor:pointer;}
+.an-head .range span.on{background:var(--paper-2);color:var(--indigo);box-shadow:var(--e1);}
+
+.an-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--e1);margin:0 16px 13px;padding:15px 16px 16px;}
+.an-card .ch{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;margin-bottom:3px;}
+.an-card .ch .ico{width:22px;height:22px;border-radius:7px;background:var(--indigo-50);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none;}
+.an-card .csub{font-size:11px;color:var(--ink-3);margin-bottom:13px;line-height:1.5;}
+
+/* forgetting curve */
+.curve-wrap{position:relative;}
+.curve-legend{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;}
+.curve-legend .lg{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-2);font-weight:600;}
+.curve-legend .lg i{width:14px;height:3px;border-radius:2px;display:inline-block;}
+.curve-legend .lg i.dash{background:repeating-linear-gradient(90deg,var(--ink-3) 0 4px,transparent 4px 7px);}
+.curve-node-tip{display:flex;gap:8px;margin-top:13px;background:var(--coral-50);border:1px solid #f3d3cb;border-radius:11px;padding:10px 12px;}
+.curve-node-tip .e{font-size:15px;flex:none;}
+.curve-node-tip .t{font-size:11.5px;line-height:1.55;color:var(--coral-700);}
+.curve-node-tip .t b{color:var(--coral);}
+
+/* 错因分布 五维 */
+.cause-grid{display:flex;flex-direction:column;gap:11px;}
+.cause-row{display:flex;align-items:center;gap:11px;}
+.cause-row .nm{width:64px;flex:none;font-size:12px;font-weight:700;color:var(--ink);}
+.cause-row .bar{flex:1;height:14px;border-radius:var(--r-pill);background:#efeae0;overflow:hidden;position:relative;}
+.cause-row .bar i{display:block;height:100%;border-radius:var(--r-pill);width:0;transition:width 1.1s cubic-bezier(.2,.9,.3,1);}
+.cause-row .vv{width:46px;flex:none;text-align:right;font-size:11.5px;font-weight:700;color:var(--ink-2);}
+.cause-row .vv b{color:var(--ink);}
+
+/* 知识点排行 */
+.kc-rank{display:flex;flex-direction:column;gap:10px;}
+.kc-item{display:flex;align-items:center;gap:11px;}
+.kc-item .rk{width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:inherit;background:var(--cue-bg);color:var(--ink-3);}
+.kc-item:nth-child(1) .rk{background:var(--coral-50);color:var(--coral-700);}
+.kc-item:nth-child(2) .rk{background:var(--amber-50);color:var(--amber);}
+.kc-item:nth-child(3) .rk{background:var(--indigo-50);color:var(--indigo);}
+.kc-item .body{flex:1;min-width:0;}
+.kc-item .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.kc-item .top .n{font-size:12.5px;font-weight:700;}
+.kc-item .top .acc{font-size:11px;font-weight:700;}
+.kc-item .pbar{height:7px;border-radius:var(--r-pill);background:#efeae0;overflow:hidden;}
+.kc-item .pbar i{display:block;height:100%;border-radius:var(--r-pill);width:0;transition:width 1s ease;}
+
+/* 正确率趋势 mini */
+.trend-row{display:flex;align-items:flex-end;gap:0;justify-content:space-between;height:96px;padding:6px 2px 0;}
+.trend-row .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;}
+.trend-row .col .bw{width:60%;max-width:22px;border-radius:6px 6px 3px 3px;background:linear-gradient(var(--indigo),#7c87e8);position:relative;transition:height 1s ease;}
+.trend-row .col .bw .pv{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;color:var(--indigo);}
+.trend-row .col .lb{font-size:10px;color:var(--ink-3);font-weight:600;}
+
+/* 行动建议 */
+.advice{background:var(--note-bg);border:1px solid var(--note-edge);border-radius:var(--r-md);margin:0 16px 18px;padding:14px 16px;}
+.advice .ah{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;margin-bottom:9px;color:var(--teal);}
+.advice ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.advice li{display:flex;gap:8px;font-size:12px;line-height:1.55;color:var(--ink-2);}
+.advice li .d{color:var(--teal);font-weight:800;flex:none;}
+.advice li b{color:var(--ink);}
+
+.an-stat-row{display:flex;gap:9px;padding:2px 16px 14px;}
+.an-mini{flex:1;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;box-shadow:var(--e1);}
+.an-mini b{font-size:21px;font-weight:800;display:block;line-height:1;}
+.an-mini .l{font-size:10px;color:var(--ink-3);margin-top:5px;}
+.an-mini.a b{color:var(--coral);}.an-mini.b b{color:var(--indigo);}.an-mini.c b{color:var(--teal);}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="screen">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="dots">
+        <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="6" width="3" height="5" rx="1" fill="#1c1a26"/><rect x="4.5" y="4" width="3" height="7" rx="1" fill="#1c1a26"/><rect x="9" y="2" width="3" height="9" rx="1" fill="#1c1a26"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#1c1a26"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12"><rect x="1" y="1" width="20" height="10" rx="3" fill="none" stroke="#1c1a26" stroke-width="1"/><rect x="2.5" y="2.5" width="15" height="7" rx="1.5" fill="#1c1a26"/><rect x="22" y="4" width="1.5" height="4" rx="1" fill="#1c1a26"/></svg>
+      </span>
+    </div>
+
+    <!-- ========== HOME ========== -->
+    <div class="page active" id="p-home">
+      <div class="scroll">
+        <div class="home-hero">
+          <div class="brand"><span class="mark"><i></i><i></i><i></i><i></i></span><span class="name">Sync<span>Mate</span></span></div>
+          <div class="greet">早上好，林思远 · 今天有 <b style="color:var(--coral)">3</b> 道错题待复习</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat a"><b>128</b><div class="lbl">错题总数</div></div>
+          <div class="stat b"><b>76%</b><div class="lbl">平均正确率</div></div>
+          <div class="stat c"><b>42</b><div class="lbl">已消灭</div></div>
+        </div>
+        <div class="sec-title">今日复习 <span class="tag">艾宾浩斯 · 第 4 天</span></div>
+        <div class="card-list">
+          <div class="mcard coral" onclick="go('detail')"><div class="ribbon"></div>
+            <div class="meta"><span class="pill grade">六年级</span><span class="pill kc">圆柱表面积</span><span class="pill cause">截面数算错</span></div>
+            <div class="q">把一根 4 米长的圆木截成 3 小段，表面积增加 24 平方分米，求原来的体积。</div>
+            <div class="foot"><span>来源：六年级数学下册期末卷</span><span class="due">今日待复习</span></div></div>
+          <div class="mcard indigo" onclick="toast('点击底部 ＋ 录入新错题')"><div class="ribbon"></div>
+            <div class="meta"><span class="pill grade">六年级</span><span class="pill kc">分数比较</span><span class="pill done">已掌握</span></div>
+            <div class="q">小亮把一根绳子剪成两段，第一段长 3/8 米，第二段占全长 3/8…</div>
+            <div class="foot"><span>来源：六年级数学下册期末卷</span><span class="due" style="color:var(--ink-3)">明日复习</span></div></div>
+          <div class="mcard amber" onclick="toast('点击底部 ＋ 录入新错题')"><div class="ribbon"></div>
+            <div class="meta"><span class="pill grade">六年级</span><span class="pill kc">三角形分类</span><span class="pill cause">审题不清</span></div>
+            <div class="q">三个内角是 ∠1、∠2、∠3，若 ∠1=∠2−∠3，判断三角形的形状…</div>
+            <div class="foot"><span>来源：六年级数学下册期末卷</span><span class="due" style="color:var(--ink-3)">3 天后</span></div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>错题本</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>管理</div>
+        <div class="fab-slot"></div>
+        <div class="tab" onclick="go('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 4 8-8M21 8v5h-5"/></svg>学情</div>
+        <div class="tab" onclick="toast('演示版仅开放「错题本 / 学情」')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>我的</div>
+      </div>
+      <div class="fab" onclick="openSheet()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+    </div>
+
+    <!-- ========== 学情 ANALYTICS ========== -->
+    <div class="page" id="p-stats">
+      <div class="scroll">
+        <div class="an-head">
+          <h1>学情分析 <span style="font-size:13px;font-weight:700;color:var(--ink-3)">· 学习体检报告</span></h1>
+          <div class="sub">林思远 · 六年级数学 · 数据截至 6 月 12 日</div>
+          <div class="range">
+            <span>本周</span><span class="on">本月</span><span>本学期</span>
+          </div>
+        </div>
+
+        <div class="an-stat-row">
+          <div class="an-mini a"><b>128</b><div class="l">错题总数</div></div>
+          <div class="an-mini b"><b>76%</b><div class="l">平均正确率</div></div>
+          <div class="an-mini c"><b>42</b><div class="l">已消灭</div></div>
+        </div>
+
+        <!-- ====== 上半张：艾宾浩斯遗忘曲线 ====== -->
+        <div class="an-card">
+          <div class="ch"><span class="ico">🧠</span>艾宾浩斯遗忘曲线</div>
+          <div class="csub">记忆随时间自然衰退。SyncMate 在第 <b>1 / 2 / 4 / 7 / 15 / 30</b> 天的复习节点把记忆拉回高位——绿线是科学复习后的保持率，灰虚线是不复习的自然遗忘。</div>
+          <div class="curve-wrap">
+            <svg viewBox="0 0 340 188" width="100%" style="display:block;overflow:visible">
+              <!-- grid -->
+              <g stroke="#e9e2d4" stroke-width="1">
+                <line x1="34" y1="14" x2="332" y2="14"/>
+                <line x1="34" y1="54" x2="332" y2="54"/>
+                <line x1="34" y1="94" x2="332" y2="94"/>
+                <line x1="34" y1="134" x2="332" y2="134"/>
+                <line x1="34" y1="160" x2="332" y2="160"/>
+              </g>
+              <!-- y labels -->
+              <g font-size="9" fill="#8b8798" font-family="monospace" text-anchor="end">
+                <text x="29" y="17">100%</text>
+                <text x="29" y="57">75%</text>
+                <text x="29" y="97">50%</text>
+                <text x="29" y="137">25%</text>
+              </g>
+              <!-- 自然遗忘 dashed -->
+              <path d="M34,14 C46,70 58,118 80,138 C120,156 200,158 332,159"
+                    fill="none" stroke="#b8b2a4" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round"/>
+              <!-- 复习曲线 锯齿回升 area -->
+              <path d="M34,14 C40,38 46,56 52,62 L52,30
+                       C62,46 70,58 78,64 L78,26
+                       C92,40 104,52 116,58 L116,22
+                       C140,32 168,40 196,46 L196,18
+                       C236,24 286,28 332,30
+                       L332,160 L34,160 Z"
+                    fill="#138a7a" fill-opacity="0.08"/>
+              <path d="M34,14 C40,38 46,56 52,62 L52,30
+                       C62,46 70,58 78,64 L78,26
+                       C92,40 104,52 116,58 L116,22
+                       C140,32 168,40 196,46 L196,18
+                       C236,24 286,28 332,30"
+                    fill="none" stroke="#138a7a" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+              <!-- review nodes -->
+              <g>
+                <circle cx="52" cy="30" r="4" fill="#fffdf8" stroke="#138a7a" stroke-width="2.4"/>
+                <circle cx="78" cy="26" r="4" fill="#fffdf8" stroke="#138a7a" stroke-width="2.4"/>
+                <circle cx="116" cy="22" r="4" fill="#fffdf8" stroke="#138a7a" stroke-width="2.4"/>
+                <circle cx="196" cy="18" r="4" fill="#fffdf8" stroke="#138a7a" stroke-width="2.4"/>
+                <circle cx="332" cy="30" r="4" fill="#fffdf8" stroke="#138a7a" stroke-width="2.4"/>
+              </g>
+              <!-- today marker -->
+              <line x1="116" y1="14" x2="116" y2="160" stroke="#e0533d" stroke-width="1.4" stroke-dasharray="3 3"/>
+              <circle cx="116" cy="22" r="5.5" fill="#e0533d"/>
+              <text x="116" y="178" font-size="9" fill="#e0533d" font-weight="700" text-anchor="middle" font-family="monospace">今天 · 第4天</text>
+              <!-- x labels -->
+              <g font-size="8.5" fill="#8b8798" font-family="monospace" text-anchor="middle">
+                <text x="34" y="178">D0</text>
+                <text x="52" y="178">D1</text>
+                <text x="78" y="178">D2</text>
+                <text x="196" y="178">D7</text>
+                <text x="332" y="178">D30</text>
+              </g>
+            </svg>
+          </div>
+          <div class="curve-legend">
+            <div class="lg"><i style="background:#138a7a"></i>科学复习后保持率</div>
+            <div class="lg"><i class="dash"></i>不复习自然遗忘</div>
+            <div class="lg"><i style="background:#e0533d"></i>当前节点</div>
+          </div>
+          <div class="curve-node-tip">
+            <span class="e">⏰</span>
+            <div class="t">今天是第 <b>4 天</b>复习节点，有 <b>3 道</b>错题正处于遗忘临界点。现在复习可把保持率从 58% 拉回 92%，<b>下一节点：第 7 天（6/15）</b>。</div>
+          </div>
+        </div>
+
+        <!-- ====== 下半张：错因分析 ====== -->
+        <div class="an-card">
+          <div class="ch"><span class="ico">🔍</span>错因分布 · 五维诊断</div>
+          <div class="csub">本月 128 道错题按错因归类。<b style="color:var(--coral-700)">计算错误</b>占比最高，是当前最该攻克的短板。</div>
+          <div class="cause-grid">
+            <div class="cause-row"><span class="nm">计算错误</span><span class="bar"><i style="background:var(--coral)" data-w="78"></i></span><span class="vv"><b>38%</b></span></div>
+            <div class="cause-row"><span class="nm">审题失误</span><span class="bar"><i style="background:var(--amber)" data-w="52"></i></span><span class="vv"><b>25%</b></span></div>
+            <div class="cause-row"><span class="nm">概念不清</span><span class="bar"><i style="background:var(--indigo)" data-w="38"></i></span><span class="vv"><b>18%</b></span></div>
+            <div class="cause-row"><span class="nm">思路方法</span><span class="bar"><i style="background:#7c87e8" data-w="26"></i></span><span class="vv"><b>13%</b></span></div>
+            <div class="cause-row"><span class="nm">习惯心理</span><span class="bar"><i style="background:var(--teal)" data-w="12"></i></span><span class="vv"><b>6%</b></span></div>
+          </div>
+        </div>
+
+        <!-- ====== 薄弱知识点排行 ====== -->
+        <div class="an-card">
+          <div class="ch"><span class="ico">📉</span>薄弱知识点排行</div>
+          <div class="csub">正确率越低越薄弱，优先复习前三名。</div>
+          <div class="kc-rank">
+            <div class="kc-item"><span class="rk">1</span><div class="body">
+              <div class="top"><span class="n">圆柱表面积</span><span class="acc" style="color:var(--coral)">正确率 42%</span></div>
+              <div class="pbar"><i style="background:var(--coral)" data-w="42"></i></div></div></div>
+            <div class="kc-item"><span class="rk">2</span><div class="body">
+              <div class="top"><span class="n">分数应用题</span><span class="acc" style="color:var(--amber)">正确率 55%</span></div>
+              <div class="pbar"><i style="background:var(--amber)" data-w="55"></i></div></div></div>
+            <div class="kc-item"><span class="rk">3</span><div class="body">
+              <div class="top"><span class="n">比例与百分数</span><span class="acc" style="color:var(--indigo)">正确率 63%</span></div>
+              <div class="pbar"><i style="background:var(--indigo)" data-w="63"></i></div></div></div>
+            <div class="kc-item"><span class="rk">4</span><div class="body">
+              <div class="top"><span class="n">三角形分类</span><span class="acc" style="color:var(--teal)">正确率 71%</span></div>
+              <div class="pbar"><i style="background:var(--teal)" data-w="71"></i></div></div></div>
+          </div>
+        </div>
+
+        <!-- ====== 正确率趋势 ====== -->
+        <div class="an-card">
+          <div class="ch"><span class="ico">📈</span>正确率趋势</div>
+          <div class="csub">近 6 周平均正确率，整体呈上升趋势 <b style="color:var(--teal)">↑ 14%</b>。</div>
+          <div class="trend-row">
+            <div class="col"><div class="bw" data-h="48"><span class="pv">62%</span></div><span class="lb">第1周</span></div>
+            <div class="col"><div class="bw" data-h="52"><span class="pv">66%</span></div><span class="lb">第2周</span></div>
+            <div class="col"><div class="bw" data-h="46"><span class="pv">61%</span></div><span class="lb">第3周</span></div>
+            <div class="col"><div class="bw" data-h="60"><span class="pv">72%</span></div><span class="lb">第4周</span></div>
+            <div class="col"><div class="bw" data-h="64"><span class="pv">74%</span></div><span class="lb">第5周</span></div>
+            <div class="col"><div class="bw" data-h="72"><span class="pv">76%</span></div><span class="lb">本周</span></div>
+          </div>
+        </div>
+
+        <!-- ====== 行动建议 ====== -->
+        <div class="advice">
+          <div class="ah">💡 本周复习建议</div>
+          <ul>
+            <li><span class="d">①</span><span>今天完成 <b>3 道</b>处于遗忘临界点的错题（圆柱表面积相关），别错过第 4 天节点。</span></li>
+            <li><span class="d">②</span><span>计算错误占 38%，建议每天花 <b>10 分钟</b>做基础计算限时训练，重点抓单位换算与截面计数。</span></li>
+            <li><span class="d">③</span><span>圆柱表面积正确率仅 42%，系统已为你推荐 <b>6 道</b>同知识点变式题，巩固后再消灭。</span></li>
+          </ul>
+        </div>
+
+        <div style="height:8px"></div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>错题本</div>
+        <div class="tab" onclick="toast('演示版仅开放「错题本 / 学情」')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg>管理</div>
+        <div class="fab-slot"></div>
+        <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 4 8-8M21 8v5h-5"/></svg>学情</div>
+        <div class="tab" onclick="toast('演示版仅开放「错题本 / 学情」')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>我的</div>
+      </div>
+      <div class="fab" onclick="openSheet()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+    </div>
+
+    <!-- ========== ALBUM ========== -->
+    <div class="page" id="p-album">
+      <div class="appbar"><div class="back" onclick="go('home')">‹</div><div><h1>选择照片</h1><div class="sub">最近项目 · 选择一张试卷</div></div></div>
+      <div class="scroll"><div class="album-grid" id="albumGrid"></div></div>
+      <div class="album-bar"><button class="btn" id="albumNext" disabled onclick="go('split');startSplit()">下一步 · OCR 切题</button></div>
+    </div>
+
+    <!-- ========== OCR SPLIT ========== -->
+    <div class="page" id="p-split">
+      <div class="appbar"><div class="back" onclick="go('album')">‹</div><div><h1>OCR 切题</h1><div class="sub">识别题目原文并切分</div></div></div>
+      <div class="ocr-modetabs">
+        <div class="mt on" id="mtMulti" onclick="setOcrMode('multi')">多选 · 一次切多题</div>
+        <div class="mt" id="mtSingle" onclick="setOcrMode('single')">单选 · 自己圈一题</div>
+      </div>
+      <div class="ocr-hint" id="ocrHint">正在扫描整卷，提取题目原文…</div>
+      <div class="ocr-stage">
+        <div class="doc-scroll">
+          <div class="paper-doc" id="paperDoc">
+            <div class="scanline" id="scanline"></div>
+            <svg viewBox="0 0 320 460" id="examSvg" font-family="'Noto Sans SC',sans-serif">
+              <rect width="320" height="460" fill="#fff"/>
+              <text x="14" y="20" font-size="7.5" fill="#1c1a26">12. 某厂会计发现现金多了 273.6 元，经查账发现原来</text>
+              <text x="22" y="31" font-size="7.5" fill="#1c1a26">是一笔支出款的小数点点错了一位，则这笔款是(    )元。</text>
+              <text x="14" y="48" font-size="8" font-weight="700" fill="#1c1a26">二、判断。(对的画"√"，错的画"✗")(10分)</text>
+              <text x="14" y="62" font-size="7.5" fill="#1c1a26">1. 在直线上表示数时，0 右边是正数，0 左边是负数。( )</text>
+              <text x="14" y="74" font-size="7.5" fill="#1c1a26">2. 所有自然数，不是奇数就是偶数。…………………( )</text>
+              <text x="14" y="86" font-size="7.5" fill="#1c1a26">3. 足球赛 11:15 开始，转播 100 分钟，结束 12:15。( )</text>
+              <text x="14" y="98" font-size="7.5" fill="#1c1a26">4. 棱长 5 厘米正方体拼成长方体，棱长和 120 厘米。( )</text>
+              <text x="14" y="110" font-size="7.5" fill="#1c1a26">5. 两个分数值相等，它们的分数单位也相等。………( )</text>
+              <text x="14" y="126" font-size="8" font-weight="700" fill="#1c1a26">三、选择。(把正确答案的序号填在括号里)(10分)</text>
+              <text x="14" y="139" font-size="7.5" fill="#1c1a26">1. 下图中只有一条对称轴的是( )。</text>
+              <text x="26" y="151" font-size="7" fill="#1c1a26">A.正方形  B.长方形  C.平行四边形  D.等腰三角形</text>
+              <text x="14" y="167" font-size="7.5" fill="#1c1a26">2. 小亮把绳子剪成两段，第一段长 3/8 米，第二段占</text>
+              <text x="22" y="178" font-size="7.5" fill="#1c1a26">全长 3/8，这两段相比，( )。</text>
+              <text x="26" y="190" font-size="7" fill="#1c1a26">A.第一段长  B.第二段长  C.一样长  D.无法比较</text>
+              <text x="14" y="206" font-size="7.5" fill="#1c1a26">3. 三角形三内角 ∠1、∠2、∠3，若 ∠1=∠2−∠3，</text>
+              <text x="22" y="217" font-size="7.5" fill="#1c1a26">这个三角形一定是( )三角形。</text>
+              <text x="26" y="229" font-size="7" fill="#1c1a26">A.锐角     B.直角     C.钝角</text>
+              <text x="14" y="245" font-size="7.5" fill="#1c1a26">4. 从正面看是▢，从右面看也是▢的图形是( )。</text>
+              <g stroke="#1c1a26" stroke-width=".6" fill="none">
+                <rect x="40" y="252" width="9" height="9"/><rect x="49" y="252" width="9" height="9"/><rect x="40" y="261" width="9" height="9"/>
+                <rect x="110" y="252" width="9" height="9"/><rect x="119" y="252" width="9" height="9"/><rect x="119" y="261" width="9" height="9"/>
+                <rect x="185" y="254" width="10" height="10"/><rect x="195" y="254" width="10" height="10"/>
+                <rect x="255" y="252" width="11" height="11"/>
+              </g>
+              <text x="40" y="278" font-size="7" fill="#1c1a26">A.        B.        C.        D.</text>
+              <text x="14" y="294" font-size="7.5" font-weight="700" fill="#1c1a26">5. 把一根 4m 长的圆木截成 3 小段，表面积增加了</text>
+              <text x="22" y="305" font-size="7.5" font-weight="700" fill="#1c1a26">24dm²，这根圆木原来的体积是( )。</text>
+              <text x="26" y="317" font-size="7" fill="#1c1a26">A.240dm³   B.4dm³   C.60dm³   D.24dm³</text>
+              <text x="14" y="334" font-size="8" font-weight="700" fill="#1c1a26">四、计算。(21分)</text>
+              <text x="18" y="347" font-size="7.5" fill="#1c1a26">1. 直接写出得数。(6分)</text>
+              <text x="22" y="365" font-size="8" fill="#1c1a26">11/24 × 8/33 =      10−0.95 =      2.7×4×0.25 =</text>
+              <text x="22" y="385" font-size="8" fill="#1c1a26">1/5 + 1/7 =        7/10 ÷ 14 =     6×3/4 ÷ 6×3/4 =</text>
+            </svg>
+            <!-- multi-mode auto cut boxes (draggable) -->
+            <div class="cut" data-i="0" style="left:3.5%;top:2.4%;width:93%;height:5.2%;"><span class="num">填12</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="1" style="left:3.5%;top:12%;width:90%;height:12.5%;"><span class="num">判断 1-5</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="2" style="left:3.5%;top:29%;width:91%;height:5.6%;"><span class="num">选1</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="3" style="left:3.5%;top:35.5%;width:91%;height:7.5%;"><span class="num">选2</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="4" style="left:3.5%;top:44%;width:91%;height:7.5%;"><span class="num">选3</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="5" style="left:3.5%;top:52.5%;width:91%;height:8.5%;"><span class="num">选4</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut wrong" data-i="6" style="left:3.5%;top:62%;width:91%;height:8%;"><span class="num">选5 ✗ 错题</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+            <div class="cut" data-i="7" style="left:3.5%;top:71.5%;width:91%;height:13%;"><span class="num">计算</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="split-bar">
+        <div class="cnt" id="splitCnt">已切出 <b>0</b> 道</div>
+        <button class="btn" id="splitNext" disabled onclick="go('confirm')">下一步 · 确认录入</button>
+      </div>
+    </div>
+
+    <!-- ========== CONFIRM (原题 vs 录入 + 兜底扫描) ========== -->
+    <div class="page" id="p-confirm">
+      <div class="appbar"><div class="back" onclick="go('split')">‹</div><div><h1>确认录入结果</h1><div class="sub">比对原题与识别文本</div></div></div>
+      <div class="cfm-wrap">
+        <div class="cmp">
+          <div class="cmp-card orig">
+            <div class="lab"><span class="dot"></span>原题（拍摄原图裁切）</div>
+            <div class="body">5. 把一根 4m 长的圆木截成 3 小段，表面积增加了 24dm²，这根圆木原来的体积是（　）。 A.240dm³ B.4dm³ C.60dm³ D.24dm³</div>
+          </div>
+          <div class="cmp-card ocr">
+            <div class="lab"><span class="dot"></span>录入结果（OCR 识别）</div>
+            <div class="body">5. 把一根 4m 长的圆木截成 3 小段，表面积增加了 24dm²，这根圆木原来的体积是（　）。 A.240dm³ B.4dm³ C.60dm³ D.24dm³</div>
+          </div>
+        </div>
+        <div class="cfm-judge">
+          <div class="jb ok on" id="jbOk" onclick="judge('ok')">✓ 识别准确</div>
+          <div class="jb bad" id="jbBad" onclick="judge('bad')">✗ 不准确</div>
+        </div>
+
+        <!-- 准确态提示（默认） -->
+        <div class="ok-panel show" id="okPanel">
+          <div class="okp-ic">✓</div>
+          <div class="okp-tx"><b>题面识别准确</b><span>原题与录入结果完全一致，可直接进入下一步。</span></div>
+        </div>
+
+        <!-- 不准确：二选一兜底 -->
+        <div class="fix-panel" id="fixPanel">
+          <div class="fh">识别有出入，选择处理方式：</div>
+          <div class="fix-opt"><div class="n">1</div><div class="ft"><b>重新录入</b><span>回到切题，重划这道题的边界</span></div></div>
+          <div class="fix-opt" onclick="showScanFix()"><div class="n">2</div><div class="ft"><b>强化扫描兜底</b><span>高对比度处理原图，截图存入错题本</span></div></div>
+
+          <!-- 兜底扫描输出 -->
+          <div class="scanfix" id="scanFix">
+            <div class="sh">📷 强化扫描已生成</div>
+            <div class="sd">对原题做白底黑字、高对比清晰化处理（类似扫描全能王），原样存入错题本，确保题面无误。</div>
+            <div class="bw-shot">
+              <svg viewBox="0 0 280 78" font-family="'Noto Sans SC',sans-serif">
+                <text x="2" y="14" font-size="9.5" font-weight="700" fill="#000">5. 把一根 4m 长的圆木截成 3 小段，表面积</text>
+                <text x="2" y="28" font-size="9.5" font-weight="700" fill="#000">增加了 24dm²，这根圆木原来的体积是（　）。</text>
+                <text x="14" y="48" font-size="9" fill="#000">A. 240dm³    B. 4dm³</text>
+                <text x="14" y="62" font-size="9" fill="#000">C. 60dm³     D. 24dm³</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cfm-bar"><button class="btn" id="cfmNext" onclick="go('gate')">题面已确认 · 下一步</button></div>
+    </div>
+
+    <!-- ========== GATE (防 AI 替代思考 · 三选一) ========== -->
+    <div class="page" id="p-gate">
+      <div class="appbar"><div class="back" onclick="go('confirm')">‹</div><div><h1>选择生成方式</h1><div class="sub">题目已确认 · 生成内容前三选一</div></div></div>
+      <div class="gate-wrap">
+        <div class="gate-lead">⚖️ <b>先想，再看。</b>为避免 AI 直接替你思考，生成内容前请先选一种方式——给得越多，留给你动脑的空间越少。</div>
+        <div class="gate-q"><div class="ql">本次录入的题目</div>把一根 4m 长的圆木截成 3 小段，表面积增加了 24dm²，这根圆木原来的体积是（　）。</div>
+
+        <div class="gchoice m1" data-m="1" onclick="pickMode(1)">
+          <div class="gh">
+            <div class="badge">📄</div>
+            <div class="gt">纯题目模式<span class="lv">给得最少 · 全靠自己</span></div>
+            <div class="radio"></div>
+          </div>
+          <div class="gd">只保留题目本身，无框架、无留白槽位。完全靠自己重做一遍。</div>
+          <div class="gprev">
+            <span class="gp-q">5. 把一根 4m 长的圆木截成 3 小段…求原来的体积</span>
+            <div class="gp-empty">— 以下空白，自由作答 —</div>
+          </div>
+        </div>
+
+        <div class="gchoice m2" data-m="2" onclick="pickMode(2)">
+          <div class="gh">
+            <div class="badge">🗂</div>
+            <div class="gt">引导 / 拆解模式<span class="lv">给结构 · 不给答案</span></div>
+            <div class="radio"></div>
+          </div>
+          <div class="gd">给出带空白槽位的框架（如「易错点分析」「做题流程」标题 + 留白）。框架块可拖动调整大小，答案留空。</div>
+          <div class="gprev">
+            <span class="gp-q">5. 把一根 4m 长的圆木截成 3 小段…求原来的体积</span>
+            <div class="gp-row">
+              <div class="gp-slot"><span class="st">易错点分析</span><div class="blank"></div><div class="blank"></div></div>
+              <div class="gp-slot"><span class="st">做题流程</span><div class="blank"></div><div class="blank"></div><div class="blank"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gchoice m3 sel" data-m="3" onclick="pickMode(3)">
+          <div class="gh">
+            <div class="badge">✨</div>
+            <div class="gt">完全模式<span class="lv">给得最多 · 全部填满</span></div>
+            <div class="radio"></div>
+          </div>
+          <div class="gd">AI 生成全部内容，所有模块填满、不留白。适合订正后查漏、或时间紧时快速复盘。</div>
+          <div class="gprev">
+            <span class="gp-q">5. 把一根 4m 长的圆木截成 3 小段…求原来的体积</span>
+            <div class="gp-row">
+              <div class="gp-slot fill"><span class="st">易错点分析</span><div class="ln"></div><div class="ln s"></div></div>
+              <div class="gp-slot fill"><span class="st">完整解题</span><div class="ln"></div><div class="ln"></div><div class="ln s"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="gate-bar"><button class="btn" id="gateGo" onclick="commitMode()">用「完全模式」生成</button></div>
+    </div>
+
+    <!-- ========== LOADING ========== -->
+    <div class="page" id="p-loading">
+      <div class="appbar"><div class="back" onclick="go('gate')">‹</div><div><h1>生成解析</h1><div class="sub" id="loadSub">圆木截段 · 表面积问题</div></div></div>
+      <div class="loading-wrap">
+        <div class="spinner"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="#eceefb" stroke-width="6"/><path d="M32 5 a27 27 0 0 1 27 27" fill="none" stroke="#3d4cd6" stroke-width="6" stroke-linecap="round"/></svg></div>
+        <div class="ltitle" id="loadTitle">正在按所选方式生成</div>
+        <div class="lsub" id="loadDesc">逐步比对你的解法，请稍候…</div>
+        <div class="loading-steps" id="loadSteps"></div>
+      </div>
+    </div>
+
+    <!-- ========== DETAIL (A4 + 双击浮层) ========== -->
+    <div class="page" id="p-detail">
+      <div class="appbar"><div class="back" onclick="go('home')">‹</div><div><h1>错题解析</h1><div class="sub" id="detailSub">A4 预览 · 双击模块编辑</div></div><div class="grow"></div><div class="mng-btn" id="mngBtn" onclick="toggleManage()"><span id="mngIco">🗑</span><span id="mngTxt">管理</span></div><div class="act" style="margin-left:10px" onclick="toast('已保存到错题本')">保存</div></div>
+      <div class="zoom-note" id="zoomNote">缩放检阅 · <b>双击任一模块</b>弹出浮层编辑（不在原位直接改）</div>
+      <div class="a4-stage" id="a4stage">
+        <div class="a4" id="a4paper">
+          <div class="a4head">
+            <div class="t">错题精解 · 选择 5</div>
+            <div class="meta">六年级数学下册期末卷<br>圆柱表面积 · ★★★☆<br>复习：3 天后</div>
+          </div>
+          <div class="a4body">
+            <div class="a4cue" id="a4cue"></div>
+            <div class="a4note" id="a4note"></div>
+          </div>
+          <div class="a4spacer"></div>
+          <div class="a4sum" id="a4sum">
+            <div class="h">📝 底部总结</div>
+            <div class="c">真正考什么 → <span class="key">截段增加截面 + 单位换算</span>。截成 3 段只增加 2 个切口、共 4 个圆截面，易误以为 3 个切口；又把 dm² 当 m² 漏了单位换算。下次看到 <b>截成 n 段</b> → 想到 <b>增加 (n−1)×2 个截面</b>。</div>
+          </div>
+          <div class="brand-foot">由 <span>SyncMate</span> 生成 · A4 纵向</div>
+        </div>
+      </div>
+      <div class="zoom-btn" id="zoomBtn" onclick="toggleZoom()">⤢</div>
+      <div class="undobar" id="undobar"><div class="ut">已删除 <b id="undoN">0</b> 个模块</div><button onclick="undoDelete()">撤销</button></div>
+      <div class="detail-bar"><button class="btn ghost" onclick="go('gate')">换个方式</button><button class="btn" onclick="openExport()">导出 A4</button></div>
+    </div>
+
+    <!-- ========== EDIT FLOAT LAYER ========== -->
+    <div class="float-mask" id="floatMask" onclick="closeFloat()"></div>
+    <div class="floatbox" id="floatBox">
+      <div class="fb-head">
+        <div class="ti" id="fbTitle">编辑模块<small id="fbSub">独立浮层 · 保存后回插原位</small></div>
+        <div class="x" onclick="closeFloat()">✕</div>
+      </div>
+      <div class="fb-tools">
+        <div class="tl on" id="tlText" onclick="setTool('text')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>文字</div>
+        <div class="tl" id="tlDraw" onclick="setTool('draw')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/></svg>手写 / 绘图</div>
+      </div>
+      <div class="fb-body">
+        <div id="paneText"><div class="fb-edit" id="fbEdit" contenteditable="true"></div></div>
+        <div id="paneDraw" style="display:none;">
+          <div class="fb-canvas-wrap"><div class="gridbg"></div><canvas id="fbCanvas" width="318" height="190"></canvas></div>
+          <div class="canvas-tools">
+            <div class="ctl on" id="penPen" onclick="setPen('pen')">✏ 笔</div>
+            <div class="ctl" id="penErase" onclick="setPen('erase')">⌫ 擦</div>
+            <span style="flex:1"></span>
+            <div class="swatch on" style="background:#2c37a8" onclick="setColor('#2c37a8',this)"></div>
+            <div class="swatch" style="background:#e0533d" onclick="setColor('#e0533d',this)"></div>
+            <div class="swatch" style="background:#1c1a26" onclick="setColor('#1c1a26',this)"></div>
+          </div>
+          <div class="canvas-hint">用手指 / 触控笔在画板上手写、画辅助线</div>
+          <div class="fb-recog"><span class="ico">🔎</span><span>底层存的是<b>矢量笔迹</b>，不是图片，随时可再编辑。系统会异步跑手写识别转文本备用；<b>识别失败不影响显示</b>。</span></div>
+        </div>
+      </div>
+      <div class="fb-foot"><button class="btn ghost" onclick="closeFloat()">取消</button><button class="btn" onclick="saveFloat()">保存并回插</button></div>
+    </div>
+
+    <!-- ========== module gallery sheet ========== -->
+    <div class="sheet-mask" id="galMask" onclick="closeGallery()"></div>
+    <div class="sheet" id="gallery">
+      <div class="handle"></div><h3>模块库 · <span id="galZone" style="color:var(--indigo)"></span></h3>
+      <div id="galList"></div>
+    </div>
+
+    <!-- ========== sheet ========== -->
+    <div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet">
+      <div class="handle"></div><h3>添加错题</h3>
+      <div class="opt cam" onclick="closeSheet();toast('演示走「相册」路径')"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg></div><div class="txt"><b>拍照录入</b><span>单题 / 整卷拍摄，自动切题</span></div><div class="arrow">›</div></div>
+      <div class="opt alb" onclick="closeSheet();go('album')"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.8"/><path d="M21 15l-5-5L5 21"/></svg></div><div class="txt"><b>从相册选择</b><span>导入已拍好的试卷照片</span></div><div class="arrow">›</div></div>
+      <div class="opt hand" onclick="closeSheet();toast('演示走「相册」路径')"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/></svg></div><div class="txt"><b>手动录入</b><span>文字 + 手写 + 绘图</span></div><div class="arrow">›</div></div>
+    </div>
+
+    <!-- ========== export ========== -->
+    <div class="exp-mask" id="expMask"><div class="exp-card">
+      <div class="ring" id="expRing"><svg width="72" height="72" viewBox="0 0 72 72" style="animation:spin 1s linear infinite"><circle cx="36" cy="36" r="30" fill="none" stroke="#eceefb" stroke-width="6"/><path d="M36 6 a30 30 0 0 1 30 30" fill="none" stroke="#3d4cd6" stroke-width="6" stroke-linecap="round"/></svg></div>
+      <div class="done-ic" id="expDone"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="32" fill="#e2f3f0"/><path d="M22 37l10 10 18-20" fill="none" stroke="#138a7a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h3 id="expTitle">正在生成 A4 文件…</h3><p id="expDesc">康奈尔排版 · A4 纵向 · SyncMate 页脚</p>
+      <div class="exp-actions" id="expActions" style="display:none;">
+        <button class="btn" onclick="toast('已保存到「文件」App')">保存为 PDF</button>
+        <button class="btn ghost" onclick="toast('已发送至打印队列')">打印 / 分享</button>
+        <button class="btn ghost" style="box-shadow:none;border:none;color:var(--ink-3)" onclick="closeExport()">完成</button>
+      </div>
+    </div></div>
+
+    <!-- ========== onboarding ========== -->
+    <div class="onb-mask" id="onbMask"><div class="onb-card">
+      <div class="onb-step on" data-s="0">
+        <div class="onb-art"><svg viewBox="0 0 120 120"><rect x="22" y="14" width="76" height="92" rx="8" fill="#fff" stroke="#3d4cd6" stroke-width="3"/><line x1="34" y1="34" x2="86" y2="34" stroke="#e4ddd0" stroke-width="3"/><line x1="34" y1="48" x2="74" y2="48" stroke="#e4ddd0" stroke-width="3"/><rect x="34" y="62" width="52" height="30" rx="5" fill="#eceefb"/><path d="M44 78l6 6 14-14" fill="none" stroke="#138a7a" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+        <h3>欢迎来到 SyncMate</h3>
+        <p>把错题拍下来，自动整理成可复习、可导出的 A4 错题本。三步带你上手。</p>
+      </div>
+      <div class="onb-step" data-s="1">
+        <div class="onb-art"><svg viewBox="0 0 120 120"><rect x="26" y="18" width="68" height="84" rx="6" fill="#fff" stroke="#1c1a26" stroke-width="2.5"/><rect x="34" y="40" width="52" height="16" rx="3" fill="none" stroke="#138a7a" stroke-width="2.5" stroke-dasharray="4"/><rect x="34" y="62" width="52" height="20" rx="3" fill="none" stroke="#e0533d" stroke-width="2.5"/><text x="60" y="76" font-size="9" fill="#e0533d" text-anchor="middle" font-weight="700">错题</text></svg></div>
+        <h3>OCR 自动切题</h3>
+        <p>整卷一次切出多道题。切错了？拖动边框重新划分。也可切到单题模式，自己圈定一道。</p>
+      </div>
+      <div class="onb-step" data-s="2">
+        <div class="onb-art"><svg viewBox="0 0 120 120"><circle cx="36" cy="44" r="14" fill="#f3efe6" stroke="#8b8798" stroke-width="2"/><text x="36" y="49" font-size="14" text-anchor="middle">📄</text><circle cx="84" cy="44" r="14" fill="#eceefb" stroke="#3d4cd6" stroke-width="2.5"/><text x="84" y="49" font-size="14" text-anchor="middle">✨</text><path d="M30 78h60v22a4 4 0 01-4 4H34a4 4 0 01-4-4z" fill="#fff" stroke="#1c1a26" stroke-width="2"/><text x="60" y="93" font-size="8" text-anchor="middle" fill="#1c1a26">先想再看 · 三选一</text></svg></div>
+        <h3>防 AI 替你思考</h3>
+        <p>生成内容前先三选一：纯题目、给框架不给答案、或全部填满。把动脑的空间留给你自己。</p>
+      </div>
+      <div class="onb-dots"><i class="on"></i><i></i><i></i></div>
+      <button class="btn" id="onbBtn" onclick="onbNext()">开始</button>
+      <div class="onb-skip" onclick="closeOnb()">跳过引导</div>
+    </div></div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<!-- ========== CONTROL CONSOLE ========== -->
+<div class="ctrl">
+  <h2>SyncMate · 演示控制台 V4</h2>
+  <div class="lead">改版后完整链路：录入 → <b style="color:#fff">OCR 多/单选切题(可拖框)</b> → <b style="color:#fff">原题vs录入确认(含兜底扫描)</b> → <b style="color:#fff">三选一防替代思考</b> → 生成 → <b style="color:#fff">A4 双击浮层编辑</b>。</div>
+  <button class="step-btn cur" data-go="home" onclick="go('home')"><span class="n">1</span>首页 · 错题本</button>
+  <button class="step-btn" data-go="stats" onclick="go('stats')"><span class="n">★</span>学情分析 · 遗忘曲线 + 错因报告</button>
+  <button class="step-btn" data-go="album" onclick="openSheet()"><span class="n">2</span>点 ＋ → 从相册选择</button>
+  <button class="step-btn" data-go="split" onclick="go('split');startSplit()"><span class="n">3</span>OCR 切题（多选/单选·拖框）</button>
+  <button class="step-btn" data-go="confirm" onclick="go('confirm')"><span class="n">4</span>确认录入（原题vs OCR·兜底扫描）</button>
+  <button class="step-btn" data-go="gate" onclick="go('gate')"><span class="n">5</span>防替代思考 · 三选一</button>
+  <button class="step-btn" data-go="loading" onclick="commitMode()"><span class="n">6</span>按所选方式生成</button>
+  <button class="step-btn" data-go="detail" onclick="go('detail')"><span class="n">7</span>A4 预览 + 双击浮层编辑</button>
+  <button class="step-btn" data-go="export" onclick="go('detail');setTimeout(openExport,200)"><span class="n">8</span>导出 A4</button>
+  <div class="nav"><button class="prev" onclick="prevStep()">‹ 上一步</button><button class="next" onclick="nextStep()">下一步 ›</button></div>
+  <div class="tip">
+    <b>本次改版重点演示：</b><br>
+    <span class="hl">①</span> A4 整页 + <b>双击模块弹浮层编辑</b>（不在原位改），浮层支持文字 / 手写 / 绘图，保存后回插。<br>
+    <span class="hl">②</span> 分块结构化：每块带<b>类型标签</b>——文本(可复用) / 矢量笔迹(可再编辑·异步识别) / 图片(存OCR文本)。<br>
+    <span class="hl">③</span> 新用户 onboarding 引导。<br>
+    <span class="hl">④</span> OCR 多选/单选切题，<b>边框可拖动</b>重划；不准确走<b>兜底强化扫描</b>。<br>
+    <span class="hl">⑤</span> 确认题目后<b>三选一</b>防 AI 替代思考（纯题目 / 引导拆解 / 完全模式）。
+  </div>
+</div>
+
+<script>
+const order=['home','album','split','confirm','gate','loading','detail'];
+function animStats(){
+  setTimeout(()=>{
+    document.querySelectorAll('#p-stats .cause-row .bar i, #p-stats .pbar i').forEach(el=>{el.style.width=el.dataset.w+'%';});
+    document.querySelectorAll('#p-stats .trend-row .bw').forEach(el=>{el.style.height=el.dataset.h+'%';});
+  },80);
+}
+function go(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+name).classList.add('active');
+  document.querySelectorAll('.ctrl .step-btn').forEach(b=>b.classList.toggle('cur', b.dataset.go===name));
+  closeSheet();
+  if(name==='loading')runLoading();
+  if(name==='stats')animStats();
+  if(name==='detail'){manageMode=false;const mb=document.getElementById('mngBtn');if(mb){mb.classList.remove('on');document.getElementById('mngIco').textContent='🗑';document.getElementById('mngTxt').textContent='管理';}document.getElementById('undobar').classList.remove('show');renderA4();}
+  if(name==='confirm')judge('ok');
+}
+function curIndex(){const cur=[...document.querySelectorAll('.page')].find(p=>p.classList.contains('active'));return order.indexOf(cur.id.replace('p-',''));}
+function nextStep(){const i=curIndex();const map=[()=>openSheet(),()=>{go('split');startSplit();},()=>go('confirm'),()=>go('gate'),()=>commitMode(),()=>go('detail'),()=>openExport()];if(i>=0&&i<map.length)map[i]();}
+function prevStep(){const i=curIndex();if(i>0)go(order[i-1]);}
+let tT;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),1900);}
+function openSheet(){document.getElementById('sheetMask').classList.add('show');document.getElementById('sheet').classList.add('show');}
+function closeSheet(){document.getElementById('sheetMask').classList.remove('show');document.getElementById('sheet').classList.remove('show');}
+
+/* ===== 学情 range toggle ===== */
+document.querySelectorAll('#p-stats .range span').forEach(s=>{
+  s.onclick=function(){
+    document.querySelectorAll('#p-stats .range span').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');toast('已切换：'+this.textContent+'（演示数据）');
+  };
+});
+
+/* ===== onboarding ===== */
+let onbIdx=0;
+function showOnb(){onbIdx=0;updateOnb();document.getElementById('onbMask').classList.add('show');}
+function updateOnb(){
+  document.querySelectorAll('.onb-step').forEach(s=>s.classList.toggle('on',+s.dataset.s===onbIdx));
+  document.querySelectorAll('.onb-dots i').forEach((d,i)=>d.classList.toggle('on',i===onbIdx));
+  document.getElementById('onbBtn').textContent = onbIdx>=2 ? '进入 SyncMate' : '下一步';
+}
+function onbNext(){if(onbIdx>=2){closeOnb();}else{onbIdx++;updateOnb();}}
+function closeOnb(){document.getElementById('onbMask').classList.remove('show');}
+showOnb();
+
+/* ===== album ===== */
+function buildAlbum(){
+  const g=document.getElementById('albumGrid');g.innerHTML='';
+  for(let idx=0;idx<9;idx++){
+    const d=document.createElement('div');d.className='photo';
+    if(idx===0){
+      d.innerHTML=`<svg viewBox="0 0 60 80"><rect width="60" height="80" fill="#fff"/>
+        <text x="4" y="9" font-size="3" fill="#1c1a26">二、判断 (10分)</text>
+        <line x1="4" y1="13" x2="50" y2="13" stroke="#d8d2c4" stroke-width=".4"/><line x1="4" y1="18" x2="46" y2="18" stroke="#d8d2c4" stroke-width=".4"/>
+        <text x="4" y="26" font-size="3" fill="#1c1a26">三、选择 (10分)</text>
+        <line x1="4" y1="30" x2="50" y2="30" stroke="#d8d2c4" stroke-width=".4"/><line x1="4" y1="35" x2="44" y2="35" stroke="#d8d2c4" stroke-width=".4"/>
+        <rect x="14" y="40" width="5" height="5" fill="none" stroke="#1c1a26" stroke-width=".4"/><rect x="22" y="40" width="5" height="5" fill="none" stroke="#1c1a26" stroke-width=".4"/>
+        <text x="4" y="54" font-size="3" fill="#1c1a26">四、计算 (21分)</text>
+        <text x="6" y="62" font-size="3.5" fill="#1c1a26">11/24 × 8/33</text><text x="6" y="70" font-size="3.5" fill="#1c1a26">1/5 + 1/7</text>
+      </svg><div class="check">✓</div>`;
+      d.onclick=()=>{document.querySelectorAll('.photo').forEach(p=>p.classList.remove('sel'));d.classList.add('sel');document.getElementById('albumNext').disabled=false;};
+    }else{
+      const hue=[40,210,150,20,260,180,90,330][idx%8];
+      d.innerHTML=`<div class="paper-mini" style="background:hsl(${hue},30%,92%)"></div>`;
+      d.onclick=()=>toast('请选第一张「期末卷」演示整卷切题');
+    }
+    g.appendChild(d);
+  }
+}
+buildAlbum();
+
+/* ===== OCR split ===== */
+let ocrMode='multi';
+function setOcrMode(m){
+  ocrMode=m;
+  document.getElementById('mtMulti').classList.toggle('on',m==='multi');
+  document.getElementById('mtSingle').classList.toggle('on',m==='single');
+  // 只取自动切出的框，排除用户单选框(#userBox)
+  const autoCuts=[...document.querySelectorAll('#paperDoc .cut:not(.user)')];
+  if(m==='single'){
+    autoCuts.forEach(c=>c.classList.remove('show','dragsel'));
+    document.getElementById('ocrHint').innerHTML='单选模式：拖动下面这个框，圈定<b>一道</b>要录入的错题';
+    let box=document.getElementById('userBox');
+    if(!box){
+      box=document.createElement('div');box.id='userBox';box.className='cut user dragsel';
+      box.style.cssText='left:5%;top:60%;width:88%;height:11%;';
+      box.innerHTML='<span class="num">我圈定的错题</span><i class="hd tl"></i><i class="hd tr"></i><i class="hd bl"></i><i class="hd br"></i>';
+      document.getElementById('paperDoc').appendChild(box);
+      makeDraggable(box);
+    }
+    box.classList.add('show','dragsel');
+    document.getElementById('splitCnt').innerHTML='已圈定 <b>1</b> 道错题';
+    document.getElementById('splitNext').disabled=false;
+  }else{
+    // 彻底隐藏并清除单选框的残留选中态
+    const ub=document.getElementById('userBox');if(ub)ub.classList.remove('show','dragsel');
+    document.getElementById('ocrHint').innerHTML='多选模式：自动切出多道题。<b>拖动边框</b>可重划（解决两题框成一题）';
+    autoCuts.forEach(c=>{c.classList.add('show');c.classList.remove('dragsel');});
+    document.getElementById('splitCnt').innerHTML='已切出 <b>8</b> 道（其中 <b style="color:var(--coral)">1 道错题</b>）';
+    document.getElementById('splitNext').disabled=false;
+  }
+}
+function startSplit(){
+  ocrMode='multi';
+  document.getElementById('mtMulti').classList.add('on');document.getElementById('mtSingle').classList.remove('on');
+  const ub=document.getElementById('userBox');if(ub)ub.classList.remove('show','dragsel');
+  const cuts=[...document.querySelectorAll('#paperDoc .cut:not(.user)')];
+  cuts.forEach(c=>c.classList.remove('show','dragsel'));
+  document.getElementById('splitNext').disabled=true;
+  document.getElementById('splitCnt').innerHTML='已切出 <b>0</b> 道';
+  const line=document.getElementById('scanline');
+  document.getElementById('ocrHint').innerHTML='正在扫描整卷，提取题目原文…';
+  line.classList.remove('run');void line.offsetWidth;line.classList.add('run');
+  setTimeout(()=>{
+    let n=0;const total=cuts.length;const iv=setInterval(()=>{
+      const box=cuts[n];if(box)box.classList.add('show');n++;
+      document.getElementById('splitCnt').innerHTML=`已切出 <b>${n}</b> 道`;
+      document.getElementById('ocrHint').innerHTML=`已识别 <b>${n}</b> 道题…`;
+      if(n>=total){
+        clearInterval(iv);
+        document.getElementById('ocrHint').innerHTML='切分完成 · <b>拖动边框</b>可重划边界';
+        document.getElementById('splitCnt').innerHTML='已切出 <b>8</b> 道（其中 <b style="color:var(--coral)">1 道错题</b>）';
+        document.getElementById('splitNext').disabled=false;
+        cuts.forEach(makeDraggable);
+      }
+    },300);
+  },1500);
+}
+/* draggable + resizable cut boxes */
+function makeDraggable(box){
+  if(box._drag)return;box._drag=true;
+  const doc=document.getElementById('paperDoc');
+  let mode=null,sx,sy,o={};
+  function pct(e){const r=doc.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)/r.width*100,y:(t.clientY-r.top)/r.height*100};}
+  function down(e){
+    document.querySelectorAll('#paperDoc .cut').forEach(c=>{if(c!==box)c.classList.remove('dragsel');});
+    box.classList.add('dragsel');
+    const hd=e.target.closest('.hd');
+    mode=hd?[...hd.classList].find(c=>['tl','tr','bl','br'].includes(c)):'move';
+    const p=pct(e);sx=p.x;sy=p.y;
+    o={l:parseFloat(box.style.left),t:parseFloat(box.style.top),w:parseFloat(box.style.width),h:parseFloat(box.style.height)};
+    e.preventDefault();e.stopPropagation();
+    window.addEventListener('mousemove',move);window.addEventListener('touchmove',move,{passive:false});
+    window.addEventListener('mouseup',up);window.addEventListener('touchend',up);
+  }
+  function move(e){
+    const p=pct(e);const dx=p.x-sx,dy=p.y-sy;
+    if(mode==='move'){box.style.left=clamp(o.l+dx,0,100-o.w)+'%';box.style.top=clamp(o.t+dy,0,100-o.h)+'%';}
+    else{
+      let l=o.l,t=o.t,w=o.w,h=o.h;
+      if(mode.includes('l')){l=o.l+dx;w=o.w-dx;}
+      if(mode.includes('r')){w=o.w+dx;}
+      if(mode.includes('t')){t=o.t+dy;h=o.h-dy;}
+      if(mode.includes('b')){h=o.h+dy;}
+      if(w>6){box.style.left=l+'%';box.style.width=w+'%';}
+      if(h>3){box.style.top=t+'%';box.style.height=h+'%';}
+    }
+    e.preventDefault();
+  }
+  function up(){window.removeEventListener('mousemove',move);window.removeEventListener('touchmove',move);window.removeEventListener('mouseup',up);window.removeEventListener('touchend',up);toast('已调整题块边界');}
+  box.addEventListener('mousedown',down);box.addEventListener('touchstart',down,{passive:false});
+}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* ===== confirm ===== */
+let judged='ok';
+function judge(k){
+  judged=k;
+  document.getElementById('jbOk').classList.toggle('on',k==='ok');
+  document.getElementById('jbBad').classList.toggle('on',k==='bad');
+  const fp=document.getElementById('fixPanel'),okp=document.getElementById('okPanel');
+  // 无论切到哪一侧，都先收起兜底扫描面板并复原下一步按钮文案
+  document.getElementById('scanFix').classList.remove('show');
+  document.getElementById('cfmNext').textContent='题面已确认 · 下一步';
+  if(k==='bad'){
+    fp.classList.add('show');okp.classList.remove('show');
+  }else{
+    fp.classList.remove('show');okp.classList.add('show');
+    toast('已确认题面准确');
+  }
+}
+function showScanFix(){document.getElementById('scanFix').classList.add('show');document.getElementById('cfmNext').textContent='已用兜底扫描 · 下一步';}
+
+/* ===== gate (三选一) ===== */
+let chosenMode=3;
+const modeNames={1:'纯题目模式',2:'引导 / 拆解模式',3:'完全模式'};
+function pickMode(m){
+  chosenMode=m;
+  document.querySelectorAll('.gchoice').forEach(c=>c.classList.toggle('sel',+c.dataset.m===m));
+  document.getElementById('gateGo').textContent='用「'+modeNames[m]+'」生成';
+}
+function commitMode(){go('loading');}
+
+/* ===== loading ===== */
+let loadTimers=[];
+const loadStepSets={
+  1:['提取并清洗题面','排版纯题目卡片'],
+  2:['提取并清洗题面','搭建引导框架','留出空白槽位'],
+  3:['识别题目与你的作答','逐步比对标准解法','精准定位出错步骤','拼装全部笔记模块']
+};
+const loadCopy={
+  1:['正在生成纯题目卡片','只给题目，其余留空，全靠你自己。'],
+  2:['正在搭建引导框架','给结构、不给答案，留白让你动脑。'],
+  3:['正在生成完整解析','逐步比对你的解法，请稍候…']
+};
+function runLoading(){
+  loadTimers.forEach(t=>clearTimeout(t));loadTimers=[];
+  document.getElementById('loadTitle').textContent=loadCopy[chosenMode][0];
+  document.getElementById('loadDesc').textContent=loadCopy[chosenMode][1];
+  document.getElementById('loadSub').textContent='圆木截段 · '+modeNames[chosenMode];
+  const steps=loadStepSets[chosenMode];
+  const wrap=document.getElementById('loadSteps');
+  wrap.innerHTML=steps.map((s,i)=>`<div class="lstep" id="ls${i}"><span class="dot">${i+1}</span>${s}</div>`).join('');
+  let acc=400;
+  steps.forEach((s,i)=>{loadTimers.push(setTimeout(()=>{document.getElementById('ls'+i).classList.add('on');if(i>0)document.getElementById('ls'+(i-1)).classList.replace('on','done');},acc));acc+=750;});
+  loadTimers.push(setTimeout(()=>{document.getElementById('ls'+(steps.length-1)).classList.replace('on','done');go('detail');},acc+350));
+}
+
+/* ===== A4 blocks (分块结构化 · 三种底层类型) =====
+   layer: 'txt' 结构化文本(可复用) | 'ink' 矢量笔迹(可再编辑·异步识别) | 'img' 图片+OCR */
+const blocks={
+  cue:[
+    {id:'c1',zone:'cue',layer:'txt',h:'核心关键词',plain:'· 截成 3 段 = 切 2 刀\n· 每刀多出 2 个圆截面\n· dm² 与 m 的单位换算',
+      html:'<div class="ct"></div>· 截成 3 段 = 切 2 刀<br>· 每刀多出 2 个圆截面<br>· dm² 与 m 的单位换算'},
+    {id:'c2',zone:'cue',layer:'ink',h:'我的错因（自定义）',plain:'',
+      html:'<span style="color:var(--ink-3);font-size:7px;">— 留空：双击写下你的错因 —</span>'},
+    {id:'c3',zone:'cue',layer:'txt',h:'易错点',plain:'误以为截 3 段是切 3 刀、多 3 个截面；又忘把 4m 换成 40dm。',
+      html:'误以为截 3 段是切 3 刀、多 3 个截面；又忘把 4m 换成 40dm。'}
+  ],
+  note:[
+    {id:'n1',zone:'note',layer:'img',h:'题目（拍照 + OCR）',plain:'把一根 4 米长的圆木截成 3 小段，表面积增加 24 平方分米，求原来的体积。',
+      html:'把一根 4 米长的圆木截成 3 小段，表面积增加 24 平方分米，这根圆木原来的体积是多少？'},
+    {id:'n2',zone:'note',layer:'txt',h:'信息梳理',plain:'已知：圆木长 4m=40dm；截成 3 段；表面积增加 24dm²。求：原来的体积。',
+      html:'<b>已知</b>：长 4m=40dm；截成 3 段；表面积增加 24dm²<br><b>求</b>：原来的体积'},
+    {id:'n3',zone:'note',layer:'txt',h:'正确解法',plain:'1) 截 3 段需切 2 刀，每刀 2 个圆截面，共 4 个。\n2) 每个底面积 24÷4=6dm²。\n3) 长 4m=40dm。\n4) 体积=6×40=240dm³，选 A。',
+      html:'<div class="stp">① 截 3 段需切 2 刀，每刀 2 个圆截面，共 4 个</div><div class="stp e">② 底面积 = 24÷4 = 6 dm²（别把 3 段当 3 刀）</div><div class="stp">③ 圆木长 4m = 40dm</div><div class="stp">④ 体积 = 6×40 = 240 dm³，选 A</div>'},
+    {id:'n4',zone:'note',layer:'txt',h:'关键公式',plain:'V圆柱 = 底面积 S × 高 h',
+      html:'<div class="fml">V圆柱 = 底面积 S × 高 h</div>'}
+  ]
+};
+const layerLabel={txt:'文本',ink:'笔迹',img:'图片'};
+function blockHTML(b){
+  const hw=b.layer==='ink'?' handwrite':'';
+  return `<div class="ablk${hw}" data-id="${b.id}" ondblclick="onAblkDbl('${b.id}')" onclick="tapHint(this)">
+    <div class="del-x" onclick="event.stopPropagation();delOne('${b.id}')">×</div>
+    <span class="lt ${b.layer}">${layerLabel[b.layer]}</span>
+    <div class="h">${b.h}</div><div class="c">${b.html}</div></div>`;
+}
+function renderA4(){
+  document.getElementById('a4cue').innerHTML=blocks.cue.map(blockHTML).join('')+'<div class="add-ablk" onclick="openGallery(\'cue\')"><span class="plus">＋</span>添加线索模块</div>';
+  document.getElementById('a4note').innerHTML=blocks.note.map(blockHTML).join('')+'<div class="add-ablk" onclick="openGallery(\'note\')"><span class="plus">＋</span>添加笔记模块</div>';
+  applyManageClass();
+  // mode 1/2 hide solution-type blocks to reflect "give less"
+  if(chosenMode===1){
+    document.querySelectorAll('#a4note .ablk').forEach(el=>{if(['n2','n3','n4'].includes(el.dataset.id))el.style.display='none';});
+    document.querySelectorAll('#a4cue .ablk').forEach(el=>{el.style.display='none';});
+    document.getElementById('a4sum').style.display='none';
+    document.getElementById('detailSub').textContent='纯题目模式 · 双击补充';
+  }else if(chosenMode===2){
+    // keep headers, blank the answers (show as 留白)
+    blankBlock('n3','— 留白：写出你的做题流程 —');
+    blankBlock('c3','— 留白：写下你认为的易错点 —');
+    document.getElementById('a4sum').querySelector('.c').innerHTML='<span style="color:var(--ink-3)">— 留白：自己总结这道题真正考什么 —</span>';
+    document.getElementById('detailSub').textContent='引导模式 · 双击填空';
+  }else{
+    document.getElementById('a4sum').style.display='';
+    document.getElementById('detailSub').textContent='完全模式 · 双击编辑';
+  }
+}
+function blankBlock(id,txt){const el=document.querySelector(`.ablk[data-id="${id}"] .c`);if(el)el.innerHTML='<span style="color:var(--ink-3)">'+txt+'</span>';}
+function findBlock(id){return [...blocks.cue,...blocks.note].find(b=>b.id===id);}
+function tapHint(el){if(manageMode)return;if(el._t)return;el._t=1;toast('双击进入编辑（弹出浮层）');setTimeout(()=>el._t=0,1500);}
+
+/* ===== 双击分发：管理态下不进编辑 ===== */
+function onAblkDbl(id){if(manageMode)return;openFloat(id);}
+
+/* ===== 管理态：整块删除 / 添加 ===== */
+let manageMode=false, lastDeleted=null, undoTimer=null;
+function toggleManage(){
+  manageMode=!manageMode;
+  const btn=document.getElementById('mngBtn');
+  if(manageMode){
+    closeFloat&&closeFloat();
+    btn.classList.add('on');
+    document.getElementById('mngIco').textContent='✓';document.getElementById('mngTxt').textContent='完成';
+    document.getElementById('detailSub').textContent='管理模块 · 点×删除 · ＋添加';
+    document.getElementById('zoomNote').innerHTML='管理模式 · 点模块左上角 <b>×</b> 删除 · 底部 <b>＋</b> 添加新模块';
+  }else{
+    btn.classList.remove('on');
+    document.getElementById('mngIco').textContent='🗑';document.getElementById('mngTxt').textContent='管理';
+    document.getElementById('zoomNote').innerHTML='缩放检阅 · <b>双击任一模块</b>弹出浮层编辑（不在原位直接改）';
+    setModeSub();
+  }
+  applyManageClass();
+}
+function setModeSub(){
+  document.getElementById('detailSub').textContent = chosenMode===1?'纯题目模式 · 双击补充' : chosenMode===2?'引导模式 · 双击填空' : '完全模式 · 双击编辑';
+}
+function applyManageClass(){
+  document.getElementById('a4paper').classList.toggle('manage',manageMode);
+}
+function locate(id){
+  let i=blocks.cue.findIndex(b=>b.id===id);if(i>=0)return{arr:blocks.cue,i,zone:'cue'};
+  i=blocks.note.findIndex(b=>b.id===id);if(i>=0)return{arr:blocks.note,i,zone:'note'};return null;
+}
+function delOne(id){
+  const loc=locate(id);if(!loc)return;
+  const el=document.querySelector(`.ablk[data-id="${id}"]`);
+  lastDeleted={data:loc.arr[loc.i],zone:loc.zone,index:loc.i};
+  if(el){el.style.transition='.3s';el.style.opacity=0;el.style.transform='scale(.85)';}
+  setTimeout(()=>{loc.arr.splice(loc.i,1);renderA4();showUndo();},300);
+}
+function showUndo(){
+  const bar=document.getElementById('undobar');bar.classList.add('show');
+  clearTimeout(undoTimer);undoTimer=setTimeout(()=>{bar.classList.remove('show');lastDeleted=null;},5000);
+}
+function undoDelete(){
+  if(!lastDeleted)return;
+  const arr=lastDeleted.zone==='cue'?blocks.cue:blocks.note;
+  arr.splice(Math.min(lastDeleted.index,arr.length),0,lastDeleted.data);
+  document.getElementById('undobar').classList.remove('show');clearTimeout(undoTimer);lastDeleted=null;
+  renderA4();toast('已撤销删除');
+}
+
+/* ===== 模块库：添加新模块 ===== */
+const galleryItems={
+  cue:[
+    {icon:'💡',layer:'txt',t:'触发思维',d:'截 n 段 → 增加 (n−1)×2 个截面'},
+    {icon:'📌',layer:'txt',t:'关键词留白',d:'留空，打印后手写填空'},
+    {icon:'✏',layer:'ink',t:'我的批注',d:'手写 / 绘图区，可再编辑'}
+  ],
+  note:[
+    {icon:'🖼',layer:'img',t:'图片附件',d:'圆木截段示意图 / 上传'},
+    {icon:'📝',layer:'txt',t:'我的解法',d:'留白区，对照标准解法'},
+    {icon:'🔁',layer:'txt',t:'同类变式题',d:'获取 1–3 道相似题练习'}
+  ]
+};
+let galZoneCur='note';
+function openGallery(zone){
+  galZoneCur=zone;
+  document.getElementById('galZone').textContent = zone==='cue'?'左侧线索栏':'右侧主笔记栏';
+  const list=document.getElementById('galList');list.innerHTML='';
+  galleryItems[zone].forEach(it=>{
+    const d=document.createElement('div');d.className='gal-opt';
+    d.innerHTML=`<div class="gic">${it.icon}</div><div class="gtx"><b>${it.t}</b><span>${it.d}</span></div><div class="gadd">＋</div>`;
+    d.onclick=()=>{insertNewBlock(zone,it);closeGallery();};
+    list.appendChild(d);
+  });
+  document.getElementById('galMask').classList.add('show');
+  document.getElementById('gallery').classList.add('show');
+}
+function closeGallery(){
+  document.getElementById('galMask').classList.remove('show');
+  document.getElementById('gallery').classList.remove('show');
+}
+function insertNewBlock(zone,it){
+  const id='x'+Date.now();
+  const nb={id,zone,layer:it.layer,h:it.t,plain:'',
+    html:`<span style="color:var(--ink-3);font-size:7px;">${it.d}（双击编辑）</span>`};
+  (zone==='cue'?blocks.cue:blocks.note).push(nb);
+  renderA4();
+  toast('已添加「'+it.t+'」模块');
+  setTimeout(()=>{const el=document.querySelector(`.ablk[data-id="${id}"]`);if(el){el.style.transition='none';el.style.opacity='0';el.style.transform='scale(.9)';requestAnimationFrame(()=>{el.style.transition='.35s';el.style.opacity='1';el.style.transform='none';});el.scrollIntoView({block:'center',behavior:'smooth'});}},30);
+}
+
+/* ===== float edit layer (双击浮层) ===== */
+let curBlk=null,curTool='text';
+function openFloat(id){
+  curBlk=findBlock(id);if(!curBlk)return;
+  document.getElementById('fbTitle').firstChild.textContent='编辑 · '+curBlk.h;
+  document.getElementById('fbSub').textContent='底层类型：'+layerLabel[curBlk.layer]+'（'+layerDesc(curBlk.layer)+'）';
+  // default tool by layer
+  setTool(curBlk.layer==='ink'?'draw':'text');
+  document.getElementById('fbEdit').innerText=curBlk.plain;
+  initCanvas();
+  document.getElementById('floatMask').classList.add('show');
+  document.getElementById('floatBox').classList.add('show');
+}
+function layerDesc(l){return l==='txt'?'结构化文本，完全可复用':l==='ink'?'矢量笔迹，可再编辑·异步识别':'图片 + OCR 文本';}
+function closeFloat(){document.getElementById('floatMask').classList.remove('show');document.getElementById('floatBox').classList.remove('show');}
+function setTool(t){
+  curTool=t;
+  document.getElementById('tlText').classList.toggle('on',t==='text');
+  document.getElementById('tlDraw').classList.toggle('on',t==='draw');
+  document.getElementById('paneText').style.display=t==='text'?'block':'none';
+  document.getElementById('paneDraw').style.display=t==='draw'?'block':'none';
+}
+function saveFloat(){
+  if(!curBlk)return;
+  if(curTool==='text'){
+    const txt=document.getElementById('fbEdit').innerText.trim();
+    curBlk.plain=txt;curBlk.html=txt.replace(/\n/g,'<br>');
+    if(curBlk.layer==='img')curBlk.layer='txt'; // 图片块编辑成文本后归为可复用文本
+    if(curBlk.layer==='ink')curBlk.layer='txt';
+  }else{
+    // handwriting: keep as vector ink, store canvas as svg-ish (demo: snapshot)
+    curBlk.layer='ink';
+    const c=document.getElementById('fbCanvas');
+    curBlk.html=`<img src="${c.toDataURL()}" style="width:100%;display:block">`;
+    toast('矢量笔迹已存 · 异步识别中…');
+  }
+  closeFloat();renderA4();
+  setTimeout(()=>{const el=document.querySelector(`.ablk[data-id="${curBlk.id}"]`);if(el){el.classList.add('tapping');setTimeout(()=>el.classList.remove('tapping'),600);el.scrollIntoView({block:'center',behavior:'smooth'});}},80);
+  if(curTool==='text')toast('已保存并回插到 A4 原位');
+}
+/* canvas drawing */
+let ctx,drawing=false,pen='pen',penColor='#2c37a8';
+function initCanvas(){
+  const c=document.getElementById('fbCanvas');ctx=c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);ctx.lineCap='round';ctx.lineJoin='round';
+  if(!c._init){
+    c._init=1;
+    const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*c.width/r.width,y:(t.clientY-r.top)*c.height/r.height};};
+    const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();};
+    const moveD=e=>{if(!drawing)return;const p=pos(e);if(pen==='erase'){ctx.save();ctx.globalCompositeOperation='destination-out';ctx.lineWidth=18;ctx.lineTo(p.x,p.y);ctx.stroke();ctx.restore();}else{ctx.strokeStyle=penColor;ctx.lineWidth=2.4;ctx.lineTo(p.x,p.y);ctx.stroke();}e.preventDefault();};
+    const end=()=>drawing=false;
+    c.addEventListener('mousedown',start);c.addEventListener('mousemove',moveD);window.addEventListener('mouseup',end);
+    c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',moveD,{passive:false});c.addEventListener('touchend',end);
+  }
+}
+function setPen(p){pen=p;document.getElementById('penPen').classList.toggle('on',p==='pen');document.getElementById('penErase').classList.toggle('on',p==='erase');}
+function setColor(col,el){penColor=col;pen='pen';document.getElementById('penPen').classList.add('on');document.getElementById('penErase').classList.remove('on');document.querySelectorAll('.canvas-tools .swatch').forEach(s=>s.classList.remove('on'));el.classList.add('on');}
+
+/* ===== zoom ===== */
+function toggleZoom(){const a=document.getElementById('a4paper');a.classList.toggle('zoom');document.getElementById('zoomBtn').textContent=a.classList.contains('zoom')?'⤡':'⤢';}
+
+/* ===== export ===== */
+function openExport(){
+  document.getElementById('expMask').classList.add('show');
+  document.getElementById('expRing').style.display='block';document.getElementById('expDone').style.display='none';
+  document.getElementById('expActions').style.display='none';
+  document.getElementById('expTitle').textContent='正在生成 A4 文件…';
+  document.getElementById('expDesc').textContent='康奈尔排版 · A4 纵向 · SyncMate 页脚';
+  setTimeout(()=>{
+    document.getElementById('expRing').style.display='none';document.getElementById('expDone').style.display='block';
+    document.getElementById('expTitle').textContent='A4 错题本已生成';
+    document.getElementById('expDesc').textContent='可保存为 PDF 或直接打印分享';
+    document.getElementById('expActions').style.display='flex';
+  },1700);
+}
+function closeExport(){document.getElementById('expMask').classList.remove('show');}
+</script>
+</body>
+</html>
